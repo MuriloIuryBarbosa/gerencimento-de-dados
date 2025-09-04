@@ -10,8 +10,28 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement register logic
-    console.log("Register:", name, email, password);
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Cadastro realizado com sucesso!');
+        // Redirect to login
+        window.location.href = '/login';
+      } else {
+        alert(data.error || 'Erro no cadastro');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Erro interno');
+    }
   };
 
   return (

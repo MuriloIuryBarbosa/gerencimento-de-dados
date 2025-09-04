@@ -9,8 +9,28 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement login logic
-    console.log("Login:", email, password);
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Login realizado com sucesso!');
+        // Redirect to dashboard
+        window.location.href = '/dashboard';
+      } else {
+        alert(data.error || 'Erro no login');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Erro interno');
+    }
   };
 
   return (
