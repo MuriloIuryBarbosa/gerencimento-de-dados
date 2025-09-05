@@ -18,8 +18,13 @@ Um sistema web moderno e robusto para gerenciamento de dados empresariais com fo
 
 ### 📊 Painel de Controle
 - **Dashboard interativo**: Métricas em tempo real (total de usuários, dados gerenciados, relatórios)
-- **Navegação intuitiva**: Menu lateral com acesso rápido às funcionalidades
+- **Navegação intuitiva**: Menu lateral expansível com acesso rápido às funcionalidades
 - **Visual responsivo**: Design adaptável para desktop e mobile
+
+### 📋 Funcionalidades do Sistema
+- **Proforma Control**: Gerenciamento de proformas
+- **Ordem de Compra**: Controle completo de ordens de compra com dashboard, métricas e formulários
+- **Requisições**: Gerenciamento de requisições
 
 ### ⚙️ Configurações Administrativas
 - **Configuração da empresa**: Nome da empresa e upload de logo
@@ -144,18 +149,31 @@ O projeto utiliza Tailwind CSS para estilização. As cores principais estão de
 
 Para alterar cores, edite as variáveis CSS ou o arquivo `tailwind.config.ts`.
 
-## 📡 API Endpoints
+## � Ordem de Compra
 
-### Autenticação
-- `POST /api/register` - Cadastro de novo usuário
-- `POST /api/login` - Login de usuário
+### Dashboard de Ordens
+- **Métricas em Tempo Real**:
+  - Total de ordens registradas
+  - Ordens pendentes de aprovação
+  - Ordens pendentes de informações
+  - Ordens com prazo estourado
+- **Tabela Interativa**: Lista todas as ordens com filtros e paginação
+- **Ações Rápidas**: Visualizar detalhes e editar ordens existentes
 
-### Configurações
-- `GET /api/settings` - Obter configurações da empresa
-- `PUT /api/settings` - Atualizar configurações da empresa
+### Criação de Nova Ordem
+- **Dados do Fornecedor**: Cadastro completo de informações do fornecedor
+- **Condições Comerciais**: Pagamento e prazo de entrega
+- **Itens Dinâmicos**: Adicionar/remover múltiplos itens com cálculo automático
+- **Cálculo de Totais**: Valor total por item e total geral da ordem
+- **Validação**: Campos obrigatórios e formatação adequada
 
-### Dashboard
-- `GET /api/dashboard/stats` - Obter estatísticas do dashboard
+### Funcionalidades Implementadas
+- ✅ Dashboard com métricas visuais
+- ✅ Tabela responsiva com dados mockados
+- ✅ Formulário completo para nova ordem
+- ✅ Cálculo automático de valores
+- ✅ Interface minimalista e intuitiva
+- 🔄 Backend e persistência no banco (próxima etapa)
 
 ## 🧪 Testes
 

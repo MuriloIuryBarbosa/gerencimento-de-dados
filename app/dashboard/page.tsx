@@ -5,11 +5,7 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <h1 className="text-3xl font-bold text-gray-900">Painel de Controle</h1>
-            <nav className="space-x-4">
-              <a href="/dashboard" className="text-blue-600 hover:text-blue-800">Dashboard</a>
-              <a href="/settings" className="text-blue-600 hover:text-blue-800">Configurações</a>
-              <button className="text-red-600 hover:text-red-800">Logout</button>
-            </nav>
+            <p className="text-sm text-gray-500">Visão detalhada das operações</p>
           </div>
         </div>
       </header>
