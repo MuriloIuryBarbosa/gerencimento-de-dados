@@ -10,18 +10,238 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      String   @default("user") // user or admin
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Usuario {
+  id            Int       @id @default(autoincrement())
+  nome          String
+  email         String    @unique
+  senha         String
+  cargo         String?
+  departamento  String?
+  ativo         Boolean   @default(true)
+  ultimoAcesso  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  movimentacoes MovimentacaoEstoque[]
+
+  @@map("usuarios")
 }
 
-model CompanySettings {
-  id          Int    @id @default(autoincrement())
-  companyName String?
-  logoUrl     String?
+model Fornecedor {
+  id                   Int       @id @default(autoincrement())
+  nome                 String    @unique
+  cnpj                 String?   @unique
+  endereco             String?
+  telefone             String?
+  email                String?
+  contatoPrincipal     String?
+  condicoesPagamento   String?
+  prazoEntregaPadrao   Int?
+  ativo                Boolean   @default(true)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  ordensCompra         OrdemCompra[]
+
+  @@map("fornecedores")
+}
+
+model OrdemCompra {
+  id                  String   @id
+  fornecedor          String
+  cnpj                String?
+  endereco            String?
+  telefone            String?
+  email               String?
+  condicaoPagamento   String?
+  prazoEntrega        DateTime?
+  observacoes         String?
+  status              String   @default("Pendente Aprovação")
+  prioridade          String   @default("Média")
+  dataEmissao         DateTime @default(now())
+  valorTotal          Decimal  @default(0.00)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  fornecedorRel       Fornecedor @relation(fields: [fornecedor], references: [nome])
+  itens               ItemOrdemCompra[]
+
+  @@map("ordens_compra")
+}
+
+model ItemOrdemCompra {
+  id              Int         @id @default(autoincrement())
+  ordemId         String
+  skuId           String
+  descricao       String
+  quantidade      Int
+  unidade         String
+  valorUnitario   Decimal
+  valorTotal      Decimal
+  dataEntrega     DateTime?
+  status          String      @default("Pendente")
+
+  ordem           OrdemCompra @relation(fields: [ordemId], references: [id])
+  sku             SKU         @relation(fields: [skuId], references: [id])
+
+  @@map("itens_ordem_compra")
+}
+
+model SKU {
+  id              String   @id
+  nome            String
+  descricao       String?
+  categoria       String?
+  unidade         String   @default("UN")
+  precoVenda      Decimal?
+  custoMedio      Decimal?
+  estoqueMinimo   Int      @default(0)
+  estoqueMaximo   Int?
+  ativo           Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  itensOrdem      ItemOrdemCompra[]
+  itensRequisicao ItemRequisicao[]
+  itensProforma   ItemProforma[]
+  estoques        Estoque[]
+  movimentacoes   MovimentacaoEstoque[]
+
+  @@map("skus")
+}
+
+model Estoque {
+  id                    Int       @id @default(autoincrement())
+  skuId                 String
+  quantidadeAtual       Int       @default(0)
+  quantidadeReservada   Int       @default(0)
+  quantidadeDisponivel  Int       @default(0)
+  localizacao           String?
+  lote                  String?
+  dataValidade          DateTime?
+  dataUltimaEntrada     DateTime?
+  dataUltimaSaida       DateTime?
+  custoMedio            Decimal?
+  valorTotalEstoque     Decimal?
+  status                String    @default("Disponível")
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  sku                   SKU @relation(fields: [skuId], references: [id])
+
+  @@unique([skuId, localizacao])
+  @@map("estoque")
+}
+
+model MovimentacaoEstoque {
+  id                    Int         @id @default(autoincrement())
+  skuId                 String
+  tipoMovimentacao      String
+  quantidade            Int
+  quantidadeAnterior    Int?
+  quantidadeAtual       Int?
+  localizacao           String?
+  lote                  String?
+  documentoReferencia   String?
+  custoUnitario         Decimal?
+  valorTotal            Decimal?
+  motivo                String?
+  usuarioId             Int?
+  dataMovimentacao      DateTime    @default(now())
+
+  sku                   SKU     @relation(fields: [skuId], references: [id])
+  usuario               Usuario? @relation(fields: [usuarioId], references: [id])
+
+  @@map("movimentacoes_estoque")
+}
+
+model Cor {
+  id            Int     @id @default(autoincrement())
+  nome          String
+  codigoHex     String?
+  codigoPantone String?
+
+  @@map("cores")
+}
+
+model Requisicao {
+  id              String   @id
+  solicitante     String
+  departamento    String
+  dataRequisicao  DateTime @default(now())
+  dataNecessidade DateTime?
+  prioridade      String   @default("Média")
+  status          String   @default("Pendente")
+  observacoes     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  itens           ItemRequisicao[]
+
+  @@map("requisicoes")
+}
+
+model ItemRequisicao {
+  id            Int         @id @default(autoincrement())
+  requisicaoId  String
+  skuId         String
+  descricao     String
+  quantidade    Int
+  unidade       String
+  observacoes   String?
+  status        String      @default("Pendente")
+
+  requisicao    Requisicao @relation(fields: [requisicaoId], references: [id])
+  sku           SKU        @relation(fields: [skuId], references: [id])
+
+  @@map("itens_requisicao")
+}
+
+model Proforma {
+  id              String   @id
+  fornecedor      String
+  moeda           String   @default("BRL")
+  taxaCambio      Decimal  @default(1.00)
+  prazoValidade   DateTime?
+  condicoes       String?
+  observacoes     String?
+  valorTotal      Decimal  @default(0.00)
+  status          String   @default("Rascunho")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  itens           ItemProforma[]
+
+  @@map("proformas")
+}
+
+model ItemProforma {
+  id            Int       @id @default(autoincrement())
+  proformaId    String
+  skuId         String
+  descricao     String
+  quantidade    Int
+  unidade       String
+  valorUnitario Decimal
+  valorTotal    Decimal
+
+  proforma      Proforma @relation(fields: [proformaId], references: [id])
+  sku           SKU      @relation(fields: [skuId], references: [id])
+
+  @@map("itens_proforma")
+}
+
+model FollowUp {
+  id              String   @id
+  titulo          String
+  descricao       String?
+  tipo            String
+  prioridade      String   @default("Média")
+  status          String   @default("Aberto")
+  responsavel     String?
+  dataVencimento  DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("follow_ups")
 }

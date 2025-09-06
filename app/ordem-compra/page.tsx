@@ -1,48 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "../../components/LanguageContext";
 
-// Dados mockados para simulação
-const mockOrdens = [
-  {
-    id: "OC-2025-001",
-    fornecedor: "Fornecedor ABC Ltda",
-    dataEmissao: "2025-01-15",
-    valorTotal: 15450.00,
-    status: "Pendente Aprovação",
-    prazoEntrega: "2025-02-15",
-    prioridade: "Alta"
-  },
-  {
-    id: "OC-2025-002",
-    fornecedor: "Empresa XYZ S.A.",
-    dataEmissao: "2025-01-10",
-    valorTotal: 8750.00,
-    status: "Aprovada",
-    prazoEntrega: "2025-01-30",
-    prioridade: "Média"
-  },
-  {
-    id: "OC-2025-003",
-    fornecedor: "Comércio Geral Ltda",
-    dataEmissao: "2025-01-08",
-    valorTotal: 22300.00,
-    status: "Pendente Informações",
-    prazoEntrega: "2025-02-08",
-    prioridade: "Baixa"
-  },
-  {
-    id: "OC-2025-004",
-    fornecedor: "Indústria Tec Ltda",
-    dataEmissao: "2024-12-20",
-    valorTotal: 45600.00,
-    status: "Prazo Estourado",
-    prazoEntrega: "2025-01-20",
-    prioridade: "Alta"
-  }
-];
+interface OrdemCompra {
+  id: string;
+  fornecedor: string;
+  dataEmissao: string;
+  valorTotal: number;
+  status: string;
+  prazoEntrega: string | null;
+  prioridade: string;
+  fornecedorRel?: {
+    nome: string;
+  };
+}
 
 const metricas = [
   {
@@ -73,7 +46,26 @@ const metricas = [
 
 export default function OrdemCompra() {
   const { t } = useLanguage();
-  const [ordens] = useState(mockOrdens);
+  const [ordens, setOrdens] = useState<OrdemCompra[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrdens = async () => {
+      try {
+        const response = await fetch('/api/ordens-compra');
+        if (response.ok) {
+          const data = await response.json();
+          setOrdens(data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar ordens de compra:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrdens();
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {

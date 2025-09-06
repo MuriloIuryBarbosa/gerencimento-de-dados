@@ -83,9 +83,69 @@ export default function NovaOrdemCompra() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implementar envio para API
-    console.log("Dados da ordem:", formData);
-    alert("Ordem de compra criada com sucesso! (Simulação)");
+
+    try {
+      // Gerar ID único para a ordem
+      const id = `OC-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
+
+      const ordemData = {
+        id,
+        fornecedor: formData.fornecedor,
+        cnpj: formData.cnpj,
+        endereco: formData.endereco,
+        telefone: formData.telefone,
+        email: formData.email,
+        condicaoPagamento: formData.condicaoPagamento,
+        prazoEntrega: formData.prazoEntrega,
+        observacoes: formData.observacoes,
+        prioridade: "Média", // Valor padrão
+        itens: formData.itens.map(item => ({
+          skuId: `SKU-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`, // Gerar SKU temporário
+          descricao: item.descricao,
+          quantidade: item.quantidade,
+          unidade: item.unidade,
+          valorUnitario: item.valorUnitario,
+          dataEntrega: formData.prazoEntrega
+        }))
+      };
+
+      const response = await fetch('/api/ordens-compra', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(ordemData),
+      });
+
+      if (response.ok) {
+        alert(t('purchaseOrderCreated'));
+        // Resetar formulário ou redirecionar
+        setFormData({
+          fornecedor: "",
+          cnpj: "",
+          endereco: "",
+          telefone: "",
+          email: "",
+          condicaoPagamento: "",
+          prazoEntrega: "",
+          observacoes: "",
+          itens: [
+            {
+              descricao: "",
+              quantidade: 1,
+              unidade: "un",
+              valorUnitario: 0,
+              valorTotal: 0
+            }
+          ]
+        });
+      } else {
+        throw new Error('Erro ao criar ordem de compra');
+      }
+    } catch (error) {
+      console.error('Erro:', error);
+      alert(t('errorCreatingOrder'));
+    }
   };
 
   return (
