@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useLanguage } from "../../../components/LanguageContext";
 
 export default function NovaOrdemCompra() {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     fornecedor: "",
     cnpj: "",
@@ -93,9 +95,9 @@ export default function NovaOrdemCompra() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Nova Ordem de Compra</h1>
+              <h1 className="text-3xl font-bold text-gray-900">{t('newPurchaseOrder')}</h1>
               <p className="mt-1 text-sm text-gray-500">
-                Preencha os dados para criar uma nova ordem de compra
+                {t('fillDataNewOrder')}
               </p>
             </div>
             <nav className="flex space-x-4">
@@ -103,7 +105,7 @@ export default function NovaOrdemCompra() {
                 href="/ordem-compra"
                 className="text-blue-600 hover:text-blue-800 font-medium"
               >
-                ← Voltar
+                ← {t('back')}
               </Link>
             </nav>
           </div>
@@ -116,12 +118,12 @@ export default function NovaOrdemCompra() {
           <div className="bg-white shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                Dados do Fornecedor
+                {t('supplierInfo')}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Nome do Fornecedor *
+                    {t('supplier')} *
                   </label>
                   <input
                     type="text"
@@ -134,7 +136,7 @@ export default function NovaOrdemCompra() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    CNPJ
+                    {t('cnpj')}
                   </label>
                   <input
                     type="text"
@@ -147,7 +149,7 @@ export default function NovaOrdemCompra() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Endereço
+                    {t('address')}
                   </label>
                   <input
                     type="text"
@@ -159,7 +161,7 @@ export default function NovaOrdemCompra() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Telefone
+                    {t('phone')}
                   </label>
                   <input
                     type="tel"
@@ -190,12 +192,12 @@ export default function NovaOrdemCompra() {
           <div className="bg-white shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                Condições Comerciais
+                {t('paymentTerms')}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Condição de Pagamento *
+                    {t('paymentTerms')} *
                   </label>
                   <select
                     name="condicaoPagamento"
@@ -213,7 +215,7 @@ export default function NovaOrdemCompra() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Prazo de Entrega *
+                    {t('deliveryDeadline')} *
                   </label>
                   <input
                     type="date"
@@ -233,7 +235,7 @@ export default function NovaOrdemCompra() {
             <div className="px-4 py-5 sm:p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  Itens da Ordem
+                  {t('items')}
                 </h3>
                 <button
                   type="button"
@@ -243,7 +245,7 @@ export default function NovaOrdemCompra() {
                   <svg className="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
-                  Adicionar Item
+                  {t('addItem')}
                 </button>
               </div>
 
@@ -251,7 +253,7 @@ export default function NovaOrdemCompra() {
                 {formData.itens.map((item, index) => (
                   <div key={index} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex justify-between items-center mb-4">
-                      <h4 className="text-sm font-medium text-gray-900">Item {index + 1}</h4>
+                      <h4 className="text-sm font-medium text-gray-900">{t('items')} {index + 1}</h4>
                       {formData.itens.length > 1 && (
                         <button
                           type="button"
@@ -268,7 +270,7 @@ export default function NovaOrdemCompra() {
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                       <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          Descrição *
+                          {t('description')} *
                         </label>
                         <input
                           type="text"
@@ -280,7 +282,7 @@ export default function NovaOrdemCompra() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
-                          Quantidade *
+                          {t('quantity')} *
                         </label>
                         <input
                           type="number"
@@ -293,7 +295,7 @@ export default function NovaOrdemCompra() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
-                          Unidade
+                          {t('unit')}
                         </label>
                         <select
                           value={item.unidade}
@@ -309,7 +311,7 @@ export default function NovaOrdemCompra() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
-                          Valor Unitário *
+                          {t('unitValue')} *
                         </label>
                         <input
                           type="number"
@@ -325,7 +327,7 @@ export default function NovaOrdemCompra() {
 
                     <div className="mt-4 flex justify-end">
                       <div className="text-sm text-gray-600">
-                        Valor Total: <span className="font-semibold">R$ {item.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        {t('totalValue')}: <span className="font-semibold">R$ {item.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                       </div>
                     </div>
                   </div>
@@ -336,7 +338,7 @@ export default function NovaOrdemCompra() {
               <div className="mt-6 border-t pt-4">
                 <div className="flex justify-end">
                   <div className="text-lg font-semibold text-gray-900">
-                    Total Geral: R$ {calcularTotalGeral().toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    {t('generalTotal')}: R$ {calcularTotalGeral().toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
               </div>
@@ -347,7 +349,7 @@ export default function NovaOrdemCompra() {
           <div className="bg-white shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                Observações
+                {t('observations')}
               </h3>
               <div>
                 <textarea
@@ -368,13 +370,13 @@ export default function NovaOrdemCompra() {
               href="/ordem-compra"
               className="px-6 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
             >
-              Cancelar
+              {t('cancel')}
             </Link>
             <button
               type="submit"
               className="px-6 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              Criar Ordem de Compra
+              {t('createOrder')}
             </button>
           </div>
         </form>
