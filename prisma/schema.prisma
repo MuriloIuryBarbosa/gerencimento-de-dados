@@ -245,3 +245,50 @@ model FollowUp {
 
   @@map("follow_ups")
 }
+
+model Representante {
+  id            Int     @id @default(autoincrement())
+  nome          String
+  email         String? @unique
+  telefone      String?
+  empresa       String?
+  comissao      Decimal @default(0.00)
+  ativo         Boolean @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("representantes")
+}
+
+model Cliente {
+  id            Int     @id @default(autoincrement())
+  nome          String
+  razaoSocial   String?
+  cnpj          String? @unique
+  endereco      String?
+  telefone      String?
+  email         String?
+  contato       String?
+  ativo         Boolean @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("clientes")
+}
+
+model Transportadora {
+  id            Int     @id @default(autoincrement())
+  nome          String
+  cnpj          String? @unique
+  endereco      String?
+  telefone      String?
+  email         String?
+  contato       String?
+  prazoEntrega  Int? // em dias
+  valorFrete    Decimal @default(0.00)
+  ativo         Boolean @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("transportadoras")
+}

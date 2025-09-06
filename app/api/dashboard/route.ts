@@ -31,7 +31,7 @@ export async function GET() {
     });
 
     // Total de SKUs ativos
-    const totalSkus = await prisma.sku.count({
+    const totalSkus = await prisma.sKU.count({
       where: { ativo: true }
     });
 

@@ -3,13 +3,13 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    const skus = await prisma.sKU.findMany({
+    const representantes = await prisma.representante.findMany({
       where: { ativo: true },
       orderBy: { nome: 'asc' }
     });
-    return NextResponse.json(skus);
+    return NextResponse.json(representantes);
   } catch (error) {
-    console.error('Erro ao buscar SKUs:', error);
+    console.error('Erro ao buscar representantes:', error);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
@@ -20,35 +20,21 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const {
-      id,
-      nome,
-      descricao,
-      categoria,
-      unidade,
-      precoVenda,
-      custoMedio,
-      estoqueMinimo,
-      estoqueMaximo
-    } = body;
+    const { nome, email, telefone, empresa, comissao } = body;
 
-    const sku = await prisma.sKU.create({
+    const representante = await prisma.representante.create({
       data: {
-        id,
         nome,
-        descricao,
-        categoria,
-        unidade,
-        precoVenda,
-        custoMedio,
-        estoqueMinimo,
-        estoqueMaximo
+        email,
+        telefone,
+        empresa,
+        comissao: comissao ? parseFloat(comissao) : 0
       }
     });
 
-    return NextResponse.json(sku, { status: 201 });
+    return NextResponse.json(representante, { status: 201 });
   } catch (error) {
-    console.error('Erro ao criar SKU:', error);
+    console.error('Erro ao criar representante:', error);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }

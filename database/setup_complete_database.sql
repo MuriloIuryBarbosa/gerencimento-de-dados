@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS itens_ordem_compra (
 -- =====================================================
 
 CREATE TABLE IF NOT EXISTS skus (
-    id VARCHAR(50) PRIMARY KEY,
+    id VARCHAR(191) PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     descricao TEXT,
     categoria VARCHAR(100),
@@ -126,7 +126,7 @@ CREATE TABLE IF NOT EXISTS skus (
 
 CREATE TABLE IF NOT EXISTS precos (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    sku_id VARCHAR(50) NOT NULL,
+    sku_id VARCHAR(191) NOT NULL,
     preco_custo DECIMAL(10,2),
     preco_venda DECIMAL(10,2),
     margem_lucro DECIMAL(5,2),
@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS precos (
 
 CREATE TABLE IF NOT EXISTS estoque (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    sku_id VARCHAR(50) NOT NULL,
+    sku_id VARCHAR(191) NOT NULL,
     quantidade_atual INT DEFAULT 0,
     quantidade_reservada INT DEFAULT 0,
     quantidade_disponivel INT DEFAULT 0,
@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS estoque (
 
 CREATE TABLE IF NOT EXISTS movimentacoes_estoque (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    sku_id VARCHAR(50) NOT NULL,
+    sku_id VARCHAR(191) NOT NULL,
     tipo_movimentacao VARCHAR(20) NOT NULL, -- Entrada, Saída, Ajuste
     quantidade INT NOT NULL,
     quantidade_anterior INT,
@@ -239,7 +239,7 @@ CREATE TABLE IF NOT EXISTS itens_proforma (
     unidade VARCHAR(10) DEFAULT 'un',
     valor_unitario DECIMAL(10,2) NOT NULL,
     valor_total DECIMAL(10,2) NOT NULL,
-    sku_id VARCHAR(50),
+    sku_id VARCHAR(191),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (proforma_id) REFERENCES proformas(id) ON DELETE CASCADE,
     FOREIGN KEY (sku_id) REFERENCES skus(id)
@@ -275,7 +275,7 @@ CREATE TABLE IF NOT EXISTS requisicoes (
 CREATE TABLE IF NOT EXISTS itens_requisicao (
     id INT AUTO_INCREMENT PRIMARY KEY,
     requisicao_id VARCHAR(20) NOT NULL,
-    sku_id VARCHAR(50),
+    sku_id VARCHAR(191),
     descricao VARCHAR(255) NOT NULL,
     quantidade_solicitada INT NOT NULL,
     quantidade_aprovada INT,

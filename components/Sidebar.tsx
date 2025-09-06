@@ -98,6 +98,49 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       ]
     },
     {
+      name: t("registration"),
+      icon: Package,
+      description: "Módulos de cadastro",
+      submodules: [
+        {
+          name: t("skus"),
+          href: "/cadastro/skus",
+          icon: Package,
+          description: "Gerenciar SKUs"
+        },
+        {
+          name: t("colors"),
+          href: "/cadastro/cores",
+          icon: Palette,
+          description: "Gerenciar cores"
+        },
+        {
+          name: t("representatives"),
+          href: "/cadastro/representantes",
+          icon: Truck,
+          description: "Gerenciar representantes"
+        },
+        {
+          name: t("clients"),
+          href: "/cadastro/clientes",
+          icon: Home,
+          description: "Gerenciar clientes"
+        },
+        {
+          name: t("suppliers"),
+          href: "/cadastro/fornecedores",
+          icon: ShoppingCart,
+          description: "Gerenciar fornecedores"
+        },
+        {
+          name: t("carriers"),
+          href: "/cadastro/transportadoras",
+          icon: Truck,
+          description: "Gerenciar transportadoras"
+        }
+      ]
+    },
+    {
       name: t("settings"),
       href: "/settings",
       icon: Settings,

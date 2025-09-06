@@ -1,12 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "../../../components/LanguageContext";
+
+interface Fornecedor {
+  id: number;
+  nome: string;
+  cnpj: string | null;
+  endereco: string | null;
+  telefone: string | null;
+  email: string | null;
+}
+
+interface SKU {
+  id: string;
+  nome: string;
+  unidade: string;
+  descricao: string | null;
+}
 
 export default function NovaOrdemCompra() {
   const { t } = useLanguage();
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+  const [skus, setSkus] = useState<SKU[]>([]);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
+    fornecedorId: "",
     fornecedor: "",
     cnpj: "",
     endereco: "",
@@ -17,6 +37,7 @@ export default function NovaOrdemCompra() {
     observacoes: "",
     itens: [
       {
+        skuId: "",
         descricao: "",
         quantidade: 1,
         unidade: "un",
@@ -25,6 +46,33 @@ export default function NovaOrdemCompra() {
       }
     ]
   });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [fornecedoresRes, skusRes] = await Promise.all([
+          fetch('/api/fornecedores'),
+          fetch('/api/skus')
+        ]);
+
+        if (fornecedoresRes.ok) {
+          const fornecedoresData = await fornecedoresRes.json();
+          setFornecedores(fornecedoresData);
+        }
+
+        if (skusRes.ok) {
+          const skusData = await skusRes.json();
+          setSkus(skusData);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -60,6 +108,7 @@ export default function NovaOrdemCompra() {
       itens: [
         ...prev.itens,
         {
+          skuId: "",
           descricao: "",
           quantidade: 1,
           unidade: "un",
@@ -79,6 +128,45 @@ export default function NovaOrdemCompra() {
 
   const calcularTotalGeral = () => {
     return formData.itens.reduce((total, item) => total + item.valorTotal, 0);
+  };
+
+  const handleFornecedorChange = (fornecedorId: string) => {
+    const fornecedor = fornecedores.find(f => f.id.toString() === fornecedorId);
+    if (fornecedor) {
+      setFormData(prev => ({
+        ...prev,
+        fornecedorId,
+        fornecedor: fornecedor.nome,
+        cnpj: fornecedor.cnpj || "",
+        endereco: fornecedor.endereco || "",
+        telefone: fornecedor.telefone || "",
+        email: fornecedor.email || ""
+      }));
+    }
+  };
+
+  const handleSkuChange = (index: number, skuId: string) => {
+    const sku = skus.find(s => s.id === skuId);
+    const updatedItens = [...formData.itens];
+    if (sku) {
+      updatedItens[index] = {
+        ...updatedItens[index],
+        skuId,
+        descricao: sku.nome,
+        unidade: sku.unidade
+      };
+    } else {
+      updatedItens[index] = {
+        ...updatedItens[index],
+        skuId,
+        descricao: "",
+        unidade: "un"
+      };
+    }
+    setFormData(prev => ({
+      ...prev,
+      itens: updatedItens
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -121,6 +209,7 @@ export default function NovaOrdemCompra() {
         alert(t('purchaseOrderCreated'));
         // Resetar formulário ou redirecionar
         setFormData({
+          fornecedorId: "",
           fornecedor: "",
           cnpj: "",
           endereco: "",
@@ -131,6 +220,7 @@ export default function NovaOrdemCompra() {
           observacoes: "",
           itens: [
             {
+              skuId: "",
               descricao: "",
               quantidade: 1,
               unidade: "un",
@@ -185,14 +275,19 @@ export default function NovaOrdemCompra() {
                   <label className="block text-sm font-medium text-gray-700">
                     {t('supplier')} *
                   </label>
-                  <input
-                    type="text"
-                    name="fornecedor"
-                    value={formData.fornecedor}
-                    onChange={handleInputChange}
+                  <select
+                    value={formData.fornecedorId}
+                    onChange={(e) => handleFornecedorChange(e.target.value)}
                     required
                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
+                  >
+                    <option value="">{t('selectSupplier')}</option>
+                    {fornecedores.map((fornecedor) => (
+                      <option key={fornecedor.id} value={fornecedor.id}>
+                        {fornecedor.nome}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
@@ -330,15 +425,21 @@ export default function NovaOrdemCompra() {
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                       <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          {t('description')} *
+                          {t('sku')} *
                         </label>
-                        <input
-                          type="text"
-                          value={item.descricao}
-                          onChange={(e) => handleItemChange(index, 'descricao', e.target.value)}
+                        <select
+                          value={item.skuId}
+                          onChange={(e) => handleSkuChange(index, e.target.value)}
                           required
                           className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                        />
+                        >
+                          <option value="">{t('selectSku')}</option>
+                          {skus.map((sku) => (
+                            <option key={sku.id} value={sku.id}>
+                              {sku.nome} ({sku.unidade})
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700">

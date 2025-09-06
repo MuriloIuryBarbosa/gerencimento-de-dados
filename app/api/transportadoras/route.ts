@@ -3,13 +3,13 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    const fornecedores = await prisma.fornecedor.findMany({
+    const transportadoras = await prisma.transportadora.findMany({
       where: { ativo: true },
       orderBy: { nome: 'asc' }
     });
-    return NextResponse.json(fornecedores);
+    return NextResponse.json(transportadoras);
   } catch (error) {
-    console.error('Erro ao buscar fornecedores:', error);
+    console.error('Erro ao buscar transportadoras:', error);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
@@ -20,33 +20,24 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const {
-      nome,
-      cnpj,
-      endereco,
-      telefone,
-      email,
-      contatoPrincipal,
-      condicoesPagamento,
-      prazoEntregaPadrao
-    } = body;
+    const { nome, cnpj, endereco, telefone, email, contato, prazoEntrega, valorFrete } = body;
 
-    const fornecedor = await prisma.fornecedor.create({
+    const transportadora = await prisma.transportadora.create({
       data: {
         nome,
         cnpj,
         endereco,
         telefone,
         email,
-        contatoPrincipal,
-        condicoesPagamento,
-        prazoEntregaPadrao: prazoEntregaPadrao ? parseInt(prazoEntregaPadrao) : null
+        contato,
+        prazoEntrega: prazoEntrega ? parseInt(prazoEntrega) : null,
+        valorFrete: valorFrete ? parseFloat(valorFrete) : 0
       }
     });
 
-    return NextResponse.json(fornecedor, { status: 201 });
+    return NextResponse.json(transportadora, { status: 201 });
   } catch (error) {
-    console.error('Erro ao criar fornecedor:', error);
+    console.error('Erro ao criar transportadora:', error);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
