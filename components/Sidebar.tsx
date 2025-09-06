@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Home, Settings, BarChart3, Package, Truck, FileText, ShoppingCart, ClipboardList, Palette, DollarSign, Archive, Layers, LogOut } from "lucide-react";
+import { useLanguage } from "./LanguageContext";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
+  const { t } = useLanguage();
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
 
   const toggleModule = (moduleName: string) => {
@@ -22,42 +24,42 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
 
   const menuModules = [
     {
-      name: "Home",
+      name: t("home"),
       href: "/",
       icon: Home,
       description: "Dashboard geral do sistema"
     },
     {
-      name: "Planejamento",
+      name: t("planning"),
       icon: BarChart3,
       description: "Módulos de planejamento",
       submodules: [
         {
-          name: "Ordens de Compra",
+          name: t("orders"),
           href: "/ordem-compra",
           icon: ShoppingCart,
           description: "Gerenciar ordens de compra"
         },
         {
-          name: "Proformas",
+          name: t("proformas"),
           href: "/proforma",
           icon: FileText,
           description: "Gerenciar proformas"
         },
         {
-          name: "Requisições",
+          name: t("requisitions"),
           href: "/requisicoes",
           icon: ClipboardList,
           description: "Gerenciar requisições"
         },
         {
-          name: "Conteineres",
+          name: t("containers"),
           href: "/conteineres",
           icon: Package,
           description: "Gerenciar conteineres"
         },
         {
-          name: "Follow Up",
+          name: t("followUp"),
           href: "/follow-up",
           icon: Truck,
           description: "Acompanhar logística"
@@ -65,30 +67,30 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       ]
     },
     {
-      name: "Executivo",
+      name: t("executive"),
       icon: Layers,
       description: "Módulos executivos",
       submodules: [
         {
-          name: "Gestão de SKUs",
+          name: t("skus"),
           href: "/executivo/skus",
           icon: Package,
           description: "Gerenciar SKUs"
         },
         {
-          name: "Gestão de Preços",
+          name: t("prices"),
           href: "/executivo/precos",
           icon: DollarSign,
           description: "Controlar preços"
         },
         {
-          name: "Controle de Estoque",
+          name: t("stock"),
           href: "/executivo/estoque",
           icon: Archive,
           description: "Gerenciar estoque"
         },
         {
-          name: "Controle de Cores",
+          name: t("colors"),
           href: "/executivo/cores",
           icon: Palette,
           description: "Gerenciar cores"
@@ -96,7 +98,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       ]
     },
     {
-      name: "Configurações",
+      name: t("settings"),
       href: "/settings",
       icon: Settings,
       description: "Configurações do sistema"
@@ -104,13 +106,21 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
   ];
 
   return (
-    <div className={`fixed left-0 top-0 h-full bg-gray-800 text-white transition-all duration-300 z-50 ${
-      isOpen ? 'w-64' : 'w-16'
-    }`}>
+    <>
+      {/* Backdrop for mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={toggleSidebar}
+        ></div>
+      )}
+      <div className={`fixed left-0 top-0 h-full bg-gray-800 text-white transition-all duration-300 z-50 ${
+        isOpen ? 'w-64 lg:w-64' : 'w-16 lg:w-16'
+      } ${isOpen ? 'block' : 'hidden lg:block'}`}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-700">
         {isOpen && (
-          <h2 className="text-lg font-semibold text-white">Sistema</h2>
+          <h2 className="text-lg font-semibold text-white">{t('system')}</h2>
         )}
         <button
           onClick={toggleSidebar}
@@ -119,9 +129,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
         >
           {isOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
         </button>
-      </div>
-
-      {/* Menu Items */}
+      </div>      {/* Menu Items */}
       <nav className="mt-8">
         <ul className="space-y-2 px-2">
           {menuModules.map((module) => {
@@ -221,7 +229,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
           <LogOut size={20} className="text-gray-300 group-hover:text-white" />
           {isOpen && (
             <span className="ml-3 text-gray-300 group-hover:text-white">
-              Logout
+              {t('logout')}
             </span>
           )}
         </button>
@@ -236,5 +244,6 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
         </div>
       )}
     </div>
+    </>
   );
 }

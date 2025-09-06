@@ -1,12 +1,18 @@
+"use client";
+
+import { useLanguage } from "../components/LanguageContext";
+
 export default function Home() {
+  const { t } = useLanguage();
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard Geral</h1>
-            <p className="text-sm text-gray-500">Visão geral do sistema de gerenciamento</p>
+            <h1 className="text-3xl font-bold text-gray-900">{t('dashboard')}</h1>
+            <p className="text-sm text-gray-500">{t('generalOverview')}</p>
           </div>
         </div>
       </header>
@@ -22,7 +28,7 @@ export default function Home() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total de SKUs</dt>
+                    <dt className="text-sm font-medium text-gray-500 truncate">{t('totalSkus')}</dt>
                     <dd className="text-lg font-medium text-gray-900">247</dd>
                   </dl>
                 </div>
@@ -37,7 +43,7 @@ export default function Home() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Ordens Ativas</dt>
+                    <dt className="text-sm font-medium text-gray-500 truncate">{t('activeOrders')}</dt>
                     <dd className="text-lg font-medium text-gray-900">32</dd>
                   </dl>
                 </div>
@@ -52,7 +58,7 @@ export default function Home() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Requisições Pendentes</dt>
+                    <dt className="text-sm font-medium text-gray-500 truncate">{t('pendingRequests')}</dt>
                     <dd className="text-lg font-medium text-gray-900">12</dd>
                   </dl>
                 </div>
@@ -67,7 +73,7 @@ export default function Home() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Valor em Estoque</dt>
+                    <dt className="text-sm font-medium text-gray-500 truncate">{t('stockValue')}</dt>
                     <dd className="text-lg font-medium text-gray-900">R$ 1.2M</dd>
                   </dl>
                 </div>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useLanguage } from "../../components/LanguageContext";
 
 // Dados mockados para simulação
 const mockOrdens = [
@@ -71,6 +72,7 @@ const metricas = [
 ];
 
 export default function OrdemCompra() {
+  const { t } = useLanguage();
   const [ordens] = useState(mockOrdens);
 
   const getStatusColor = (status: string) => {
@@ -108,9 +110,9 @@ export default function OrdemCompra() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Ordens de Compra</h1>
+              <h1 className="text-3xl font-bold text-gray-900">{t('orders')}</h1>
               <p className="mt-1 text-sm text-gray-500">
-                Gerencie todas as ordens de compra da empresa
+                {t('manageOrders')}
               </p>
             </div>
           </div>
@@ -155,7 +157,7 @@ export default function OrdemCompra() {
               <svg className="-ml-1 mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              Nova Ordem de Compra
+              {t('newPurchaseOrder')}
             </Link>
           </div>
         </div>
@@ -164,10 +166,10 @@ export default function OrdemCompra() {
         <div className="bg-white shadow overflow-hidden sm:rounded-md">
           <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
             <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Lista de Ordens de Compra
+              {t('listOfOrders')}
             </h3>
             <p className="mt-1 max-w-2xl text-sm text-gray-500">
-              Visualize e gerencie todas as ordens de compra registradas
+              {t('viewManageOrders')}
             </p>
           </div>
 
@@ -176,25 +178,25 @@ export default function OrdemCompra() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ordem
+                    {t('order')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fornecedor
+                    {t('supplier')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data Emissão
+                    {t('issueDate')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Valor Total
+                    {t('totalValue')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    {t('status')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Prioridade
+                    {t('priority')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
+                    {t('actions')}
                   </th>
                 </tr>
               </thead>
@@ -228,10 +230,10 @@ export default function OrdemCompra() {
                         href={`/ordem-compra/${ordem.id}`}
                         className="text-blue-600 hover:text-blue-900 mr-4"
                       >
-                        Ver Detalhes
+                        {t('viewDetails')}
                       </Link>
                       <button className="text-gray-600 hover:text-gray-900">
-                        Editar
+                        {t('edit')}
                       </button>
                     </td>
                   </tr>
@@ -245,14 +247,14 @@ export default function OrdemCompra() {
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-700">
                 Mostrando <span className="font-medium">1</span> a <span className="font-medium">4</span> de{' '}
-                <span className="font-medium">24</span> resultados
+                <span className="font-medium">24</span> {t('results')}
               </div>
               <div className="flex space-x-2">
                 <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                  Anterior
+                  {t('previous')}
                 </button>
                 <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                  Próximo
+                  {t('next')}
                 </button>
               </div>
             </div>
