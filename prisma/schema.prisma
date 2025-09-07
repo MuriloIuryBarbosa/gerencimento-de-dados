@@ -17,11 +17,16 @@ model Usuario {
   senha         String
   cargo         String?
   departamento  String?
+  empresaId     Int?
+  isAdmin       Boolean   @default(false)
+  isSuperAdmin  Boolean   @default(false)
   ativo         Boolean   @default(true)
   ultimoAcesso  DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  empresa       Empresa?  @relation(fields: [empresaId], references: [id])
+  permissoes    UsuarioPermissao[]
   movimentacoes MovimentacaoEstoque[]
 
   @@map("usuarios")
@@ -291,4 +296,135 @@ model Transportadora {
   updatedAt     DateTime @updatedAt
 
   @@map("transportadoras")
+}
+
+// =====================================================
+// MODELOS DE ADMINISTRAÇÃO AVANÇADA
+// =====================================================
+
+model Empresa {
+  id          Int      @id @default(autoincrement())
+  nome        String   @unique
+  cnpj        String?  @unique
+  dominio     String?  @unique // domínio personalizado
+  logo        String?
+  ativo       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  usuarios    Usuario[]
+  permissoes  PermissaoEmpresa[]
+  tabelas     TabelaDinamica[]
+
+  @@map("empresas")
+}
+
+model Permissao {
+  id          Int      @id @default(autoincrement())
+  nome        String   @unique
+  descricao   String?
+  categoria   String   // Sistema, Tabelas, Usuarios, Relatorios, etc.
+  ativo       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  usuarios    UsuarioPermissao[]
+  empresas    PermissaoEmpresa[]
+
+  @@map("permissoes")
+}
+
+model UsuarioPermissao {
+  id           Int       @id @default(autoincrement())
+  usuarioId    Int
+  permissaoId  Int
+  concedidoPor Int       // ID do usuário que concedeu
+  dataConcessao DateTime @default(now())
+  dataExpiracao DateTime?
+  ativo        Boolean   @default(true)
+
+  usuario      Usuario   @relation(fields: [usuarioId], references: [id])
+  permissao    Permissao @relation(fields: [permissaoId], references: [id])
+
+  @@unique([usuarioId, permissaoId])
+  @@map("usuarios_permissoes")
+}
+
+model PermissaoEmpresa {
+  id          Int      @id @default(autoincrement())
+  empresaId   Int
+  permissaoId Int
+  ativo       Boolean  @default(true)
+
+  empresa     Empresa  @relation(fields: [empresaId], references: [id])
+  permissao   Permissao @relation(fields: [permissaoId], references: [id])
+
+  @@unique([empresaId, permissaoId])
+  @@map("permissoes_empresas")
+}
+
+model TabelaDinamica {
+  id          Int      @id @default(autoincrement())
+  nome        String   @unique
+  descricao   String?
+  empresaId   Int
+  criadoPor   Int
+  ativo       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  empresa     Empresa  @relation(fields: [empresaId], references: [id])
+  campos      CampoDinamico[]
+  registros   RegistroDinamico[]
+
+  @@map("tabelas_dinamicas")
+}
+
+model CampoDinamico {
+  id            Int      @id @default(autoincrement())
+  tabelaId      Int
+  nome          String
+  tipo          String   // TEXT, NUMBER, DATE, BOOLEAN, SELECT, etc.
+  tamanho       Int?     // para VARCHAR
+  obrigatorio   Boolean  @default(false)
+  unico         Boolean  @default(false)
+  valorPadrao   String?
+  opcoes        String?  // JSON para opções de SELECT
+  ordem         Int      @default(0)
+  ativo         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  tabela        TabelaDinamica @relation(fields: [tabelaId], references: [id])
+
+  @@unique([tabelaId, nome])
+  @@map("campos_dinamicos")
+}
+
+model RegistroDinamico {
+  id        Int      @id @default(autoincrement())
+  tabelaId  Int
+  dados     String   // JSON com os valores dos campos
+  criadoPor Int
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tabela    TabelaDinamica @relation(fields: [tabelaId], references: [id])
+
+  @@map("registros_dinamicos")
+}
+
+model LogSistema {
+  id          Int      @id @default(autoincrement())
+  usuarioId   Int?
+  acao        String   // CREATE, UPDATE, DELETE, LOGIN, etc.
+  entidade    String   // Usuario, TabelaDinamica, etc.
+  entidadeId  Int?
+  descricao   String
+  dadosAntes  String?  // JSON
+  dadosDepois String?  // JSON
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@map("logs_sistema")
 }

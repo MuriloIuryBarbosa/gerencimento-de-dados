@@ -1,7 +1,34 @@
 # Sistema de Gerenciamento de Dados
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.5.2-black)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.type### 5. Execute as migrações do banco
+```bash
+npx prisma migrate dev --name init
+```
+
+### 6. Gere o cliente Prisma
+```bash
+npx prisma generate
+```
+
+### 7. Execute os scripts SQL administrativos (opcional)
+```bash
+# Script completo com todas as funcionalidades admin
+mysql -u root -p datalake < database/admin_features.sql
+
+# Ou script simplificado para funcionalidades básicas
+mysql -u root -p datalake < database/admin_simple.sql
+
+# Script para popular permissões iniciais
+mysql -u root -p datalake < database/permissoes_iniciais.sql
+```
+
+### 8. Inicie o servidor de desenvolvimento
+```bash
+npm run dev
+```
+
+O sistema estará disponível em `http://localhost:3000`.
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.1-38B2AC)](https://tailwindcss.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-5.15.0-2D3748)](https://www.prisma.io/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1)](https://www.mysql.com/)
@@ -35,6 +62,82 @@ Um sistema web moderno e robusto para gerenciamento de dados empresariais com fo
 - **Hash de senhas**: Utilização de bcrypt para proteção de credenciais
 - **Validação de formulários**: Prevenção de dados inválidos no frontend e backend
 - **Controle de permissões**: Restrição de acesso baseada em roles
+- **Sistema de Controle de Acesso ao Menu Admin**: Menu administrativo exibido apenas para usuários autorizados
+
+### 🛡️ Sistema de Controle de Acesso ao Menu Admin
+
+#### Visão Geral
+Sistema inteligente que controla dinamicamente a exibição do menu de administração no sidebar baseado nas permissões do usuário, garantindo que apenas usuários autorizados tenham acesso às funcionalidades administrativas.
+
+#### Funcionalidades Implementadas
+
+##### 🔧 Componentes do Sistema
+- **Hook de Permissões** (`useUserPermissions`): Hook personalizado para verificação de permissões
+- **Sidebar Condicional**: Menu lateral que se adapta às permissões do usuário
+- **API de Verificação**: Endpoint `/api/admin/check-access` para validação server-side
+- **Controle de Expiração**: Suporte a permissões com data de validade
+
+##### 🎯 Critérios de Acesso
+O menu de administração será exibido quando o usuário possuir:
+- ✅ **Super Admin**: `isSuperAdmin = true` (acesso total ao sistema)
+- ✅ **Admin**: `isAdmin = true` (acesso administrativo)
+- ✅ **Permissão Específica**: `admin.full_access` ou qualquer permissão começando com `admin.`
+
+##### 📊 Estrutura do Menu Admin
+```
+📊 Administração
+├── 📈 Dashboard Admin (/admin)
+├── 👥 Gerenciar Usuários (/admin/usuarios)
+├── 🛡️ Gerenciar Permissões (/admin/permissoes)
+└── 📦 Tabelas Dinâmicas (/admin/tabelas)
+```
+
+##### 🔄 Fluxo de Funcionamento
+1. **Carregamento**: Hook `useUserPermissions` é executado na inicialização
+2. **Verificação**: API consulta permissões do usuário no banco de dados
+3. **Avaliação**: Sistema verifica se usuário tem acesso administrativo
+4. **Renderização**: Menu admin aparece apenas se autorizado
+
+##### 🛡️ Recursos de Segurança
+- **Verificação Server-side**: Validação de permissões no backend
+- **Controle de Estado**: Apenas permissões ativas são consideradas
+- **Expiração Automática**: Permissões com data limite são respeitadas
+- **Fallback Seguro**: Usuários não autorizados não visualizam o menu
+
+##### 🚀 Como Utilizar
+1. **Para Administradores**: Usuários com `isAdmin: true` ou `isSuperAdmin: true` veem automaticamente o menu
+2. **Para Usuários Específicos**: Conceda a permissão `admin.full_access` via painel de permissões
+3. **Verificação**: O menu aparecerá automaticamente após concessão da permissão
+
+##### 📋 Endpoints da API Administrativa
+
+| Endpoint | Método | Descrição |
+|----------|--------|-----------|
+| `/api/admin/check-access` | GET | Verifica se o usuário atual tem acesso administrativo |
+| `/api/admin/stats` | GET | Retorna estatísticas gerais do sistema |
+| `/api/admin/usuarios` | GET/POST | Lista/cria usuários do sistema |
+| `/api/admin/permissoes` | GET/POST | Lista/cria permissões do sistema |
+| `/api/admin/usuarios-permissoes` | GET/POST | Lista/concede permissões a usuários |
+| `/api/admin/usuarios-permissoes/[id]` | DELETE | Revoga permissão específica |
+| `/api/admin/tabelas` | GET/POST | Lista/cria tabelas dinâmicas |
+| `/api/admin/ddl` | POST | Executa operações DDL no banco |
+
+##### 🔐 Resposta da API de Verificação
+```json
+{
+  "canAccessAdmin": true,
+  "isAdmin": true,
+  "isSuperAdmin": false,
+  "permissions": ["admin.full_access", "users.view", "users.create"]
+}
+```
+
+##### 🚀 Próximos Passos para Produção
+1. **Integração com Sistema de Autenticação**: Substituir simulação por autenticação real (JWT/Session)
+2. **Cache de Permissões**: Implementar cache Redis para melhorar performance
+3. **Logs de Auditoria**: Registrar todas as tentativas de acesso administrativo
+4. **Rate Limiting**: Implementar limite de tentativas para endpoints sensíveis
+5. **Testes Automatizados**: Criar suíte completa de testes para o sistema de permissões
 
 ## 🏗️ Estrutura do Projeto
 
@@ -44,7 +147,14 @@ gerenciamento-de-dados/
 │   ├── api/                      # Endpoints da API
 │   │   ├── login/                # Rota de login
 │   │   ├── register/             # Rota de cadastro
-│   │   └── settings/             # Rota de configurações
+│   │   ├── settings/             # Rota de configurações
+│   │   └── admin/                # Endpoints administrativos
+│   │       ├── check-access/     # Verificação de permissões de acesso
+│   │       ├── stats/           # Estatísticas do sistema
+│   │       ├── usuarios/        # Gerenciamento de usuários
+│   │       ├── permissoes/      # Gerenciamento de permissões
+│   │       ├── usuarios-permissoes/ # Controle de permissões por usuário
+│   │       └── ddl/             # Operações DDL no banco
 │   ├── dashboard/                # Página do painel de controle
 │   ├── login/                    # Página de login
 │   ├── register/                 # Página de cadastro
@@ -53,14 +163,25 @@ gerenciamento-de-dados/
 │   ├── layout.tsx                # Layout principal
 │   └── page.tsx                  # Página inicial
 ├── components/                   # Componentes reutilizáveis
+│   ├── AuthContext.tsx          # Contexto de autenticação (em desenvolvimento)
+│   ├── LanguageContext.tsx      # Contexto de internacionalização
+│   ├── ProtectedRoute.tsx       # Proteção de rotas (em desenvolvimento)
+│   ├── Sidebar.tsx              # Menu lateral com controle de permissões
+│   ├── useUserPermissions.ts    # Hook para verificação de permissões
+│   └── ...                      # Outros componentes
 ├── lib/                          # Utilitários e configurações
 │   ├── prisma.ts                 # Configuração do Prisma Client
 │   └── auth.ts                   # Configurações de autenticação
 ├── prisma/                       # Configurações do Prisma
 │   ├── schema.prisma             # Esquema do banco de dados
-│   └── migrations/               # Migrações do banco
+│   ├── migrations/               # Migrações do banco
+│   └── dev.db                    # Banco SQLite para desenvolvimento
 ├── types/                        # Definições de tipos TypeScript
 ├── public/                       # Arquivos estáticos
+├── database/                     # Scripts SQL auxiliares
+│   ├── admin_features.sql        # Script completo para recursos admin
+│   ├── admin_simple.sql          # Script simplificado para admin
+│   └── permissoes_iniciais.sql   # Script para popular permissões
 ├── .env                          # Variáveis de ambiente
 ├── .env.example                  # Exemplo de variáveis de ambiente
 ├── package.json                  # Dependências e scripts
@@ -149,6 +270,30 @@ O projeto utiliza Tailwind CSS para estilização. As cores principais estão de
 
 Para alterar cores, edite as variáveis CSS ou o arquivo `tailwind.config.ts`.
 
+### Scripts SQL Administrativos
+A pasta `database/` contém scripts SQL para configuração das funcionalidades administrativas:
+
+#### `admin_features.sql`
+- Script completo com todas as tabelas e funcionalidades administrativas
+- Inclui: usuários, permissões, tabelas dinâmicas, logs do sistema
+- Ideal para nova instalação com recursos completos
+
+#### `admin_simple.sql`
+- Versão simplificada do script administrativo
+- Contém apenas as funcionalidades essenciais
+- Recomendado para ambientes de desenvolvimento rápido
+
+#### `permissoes_iniciais.sql`
+- Popula o sistema com permissões pré-definidas
+- Cria 25 permissões organizadas por categoria
+- Concede automaticamente permissões para usuários admin
+- Suporte a `INSERT IGNORE` para evitar duplicatas
+
+**Como executar os scripts:**
+```bash
+mysql -u root -p datalake < database/permissoes_iniciais.sql
+```
+
 ## � Ordem de Compra
 
 ### Dashboard de Ordens
@@ -200,6 +345,12 @@ npm run test:integration
 - Certifique-se de que o banco `datalake` existe
 - Execute `npx prisma migrate reset` para resetar as migrações
 
+### Problemas com Sistema de Permissões
+- **Menu admin não aparece**: Verifique se o usuário tem `isAdmin: true` ou `isSuperAdmin: true`
+- **API retorna erro 500**: Execute `npx prisma generate` para regenerar o cliente
+- **Permissões não funcionam**: Execute o script `database/permissoes_iniciais.sql`
+- **Hook não carrega**: Verifique se o servidor está rodando na porta correta
+
 ### Performance
 - Para otimização em produção, use `npm run build` e `npm run start`
 - Configure variáveis de ambiente para produção
@@ -236,3 +387,7 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 ---
 
 **Nota**: Este projeto está em desenvolvimento ativo. Funcionalidades podem ser adicionadas ou modificadas conforme as necessidades do negócio.
+
+**Sistema de Controle de Acesso**: Implementado sistema completo de permissões com menu administrativo condicional. Usuários com permissões administrativas terão acesso automático ao painel de administração no menu lateral.
+
+**Última atualização**: Sistema de permissões implementado (Setembro 2025)

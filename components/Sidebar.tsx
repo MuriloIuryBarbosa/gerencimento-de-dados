@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Home, Settings, BarChart3, Package, Truck, FileText, ShoppingCart, ClipboardList, Palette, DollarSign, Archive, Layers, LogOut } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home, Settings, BarChart3, Package, Truck, FileText, ShoppingCart, ClipboardList, Palette, DollarSign, Archive, Layers, LogOut, Shield } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
+import { useUserPermissions } from "./useUserPermissions";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
   const { t } = useLanguage();
+  const { canAccessAdmin, loading: permissionsLoading } = useUserPermissions();
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
 
   const toggleModule = (moduleName: string) => {
@@ -140,6 +142,38 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
         }
       ]
     },
+    // Módulo de Administração - apenas para usuários com permissão
+    ...(canAccessAdmin ? [{
+      name: "Administração",
+      icon: Shield,
+      description: "Painel administrativo do sistema",
+      submodules: [
+        {
+          name: "Dashboard Admin",
+          href: "/admin",
+          icon: BarChart3,
+          description: "Dashboard administrativo"
+        },
+        {
+          name: "Gerenciar Usuários",
+          href: "/admin/usuarios",
+          icon: Home,
+          description: "Gerenciar usuários do sistema"
+        },
+        {
+          name: "Gerenciar Permissões",
+          href: "/admin/permissoes",
+          icon: Shield,
+          description: "Controlar permissões de acesso"
+        },
+        {
+          name: "Tabelas Dinâmicas",
+          href: "/admin/tabelas",
+          icon: Package,
+          description: "Gerenciar tabelas dinâmicas"
+        }
+      ]
+    }] : []),
     {
       name: t("settings"),
       href: "/settings",
