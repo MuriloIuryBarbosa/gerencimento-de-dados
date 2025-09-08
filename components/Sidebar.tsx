@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ChevronLeft, ChevronRight, Home, Settings, BarChart3, Package, Truck, FileText, ShoppingCart, ClipboardList, Palette, DollarSign, Archive, Layers, LogOut, Shield, User, Crown, ShieldCheck } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
 import { useUserPermissions } from "./useUserPermissions";
@@ -18,7 +19,68 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
   const { canAccessAdmin, loading: permissionsLoading } = useUserPermissions();
   const { usuario, loading: userLoading, papel, cargo } = useUsuarioAtual();
   const { logout } = useAuth();
+  const pathname = usePathname();
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
+
+  // Função para determinar qual módulo deve estar expandido baseado na rota atual
+  const getModuleFromPath = (path: string): string | null => {
+    // Mapeamento de rotas para módulos
+    const routeMappings: Record<string, string> = {
+      // Cadastro
+      '/cadastro': 'Cadastro',
+      '/cadastro/skus': 'Cadastro',
+      '/cadastro/cores': 'Cadastro',
+      '/cadastro/representantes': 'Cadastro',
+      '/cadastro/clientes': 'Cadastro',
+      '/cadastro/fornecedores': 'Cadastro',
+      '/cadastro/transportadoras': 'Cadastro',
+      '/cadastro/empresas': 'Cadastro',
+
+      // Executivo
+      '/executivo': 'Executivo',
+      '/executivo/skus': 'Executivo',
+      '/executivo/precos': 'Executivo',
+      '/executivo/estoque': 'Executivo',
+      '/executivo/cores': 'Executivo',
+
+      // Cubagem
+      '/cubagem': 'Cubagem',
+      '/cubagem/simulador': 'Cubagem',
+
+      // Financeiro
+      '/financeiro': 'Financeiro',
+      '/financeiro/boletos': 'Financeiro',
+
+      // Planejamento
+      '/planejamento': 'Planejamento',
+      '/ordem-compra': 'Planejamento',
+      '/ordem-compra/nova': 'Planejamento',
+      '/proforma': 'Planejamento',
+      '/requisicoes': 'Planejamento',
+      '/requisicoes/nova': 'Planejamento',
+      '/conteineres': 'Planejamento',
+      '/followup': 'Planejamento',
+
+      // Administração
+      '/admin': 'Administração',
+      '/admin/dashboard': 'Administração',
+      '/admin/usuarios': 'Administração',
+      '/admin/permissoes': 'Administração',
+      '/admin/permissoes-dinamicas': 'Administração',
+      '/admin/logs': 'Administração',
+      '/admin/tabelas': 'Administração',
+    };
+
+    return routeMappings[path] || null;
+  };
+
+  // Atualizar módulos expandidos baseado na rota atual
+  useEffect(() => {
+    const currentModule = getModuleFromPath(pathname);
+    if (currentModule) {
+      setExpandedModules([currentModule]);
+    }
+  }, [pathname]);
 
   const toggleModule = (moduleName: string) => {
     setExpandedModules(prev =>
@@ -362,17 +424,6 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                         />
                       )}
                     </Link>
-
-                    {/* Toggle button for submodules */}
-                    {isOpen && (
-                      <button
-                        onClick={() => toggleModule(module.name)}
-                        className="ml-8 mt-1 px-2 py-1 text-xs text-gray-400 hover:text-white transition-colors opacity-60 hover:opacity-100"
-                        title="Expandir/Recolher sub-módulos"
-                      >
-                        {expandedModules.includes(module.name) ? '▼' : '▶'}
-                      </button>
-                    )}
                   </div>
 
                   {/* Submodules */}
