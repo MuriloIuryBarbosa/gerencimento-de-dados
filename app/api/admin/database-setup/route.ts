@@ -7,11 +7,30 @@ const execAsync = promisify(exec);
 
 export async function POST(request: NextRequest) {
   try {
-    // Verificar se o usuário é super admin
-    // TODO: Implementar verificação de autenticação
-    // Por enquanto, vamos permitir para desenvolvimento
+    // Verificar autenticação - por enquanto, simular verificação
+    // TODO: Implementar verificação de sessão/token adequada
 
-    console.log('Iniciando configuração do banco de dados...');
+    // Simulação: verificar se há um usuário super admin no banco
+    const superAdminUser = await prisma.usuario.findFirst({
+      where: {
+        isSuperAdmin: true
+      },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        isSuperAdmin: true
+      }
+    });
+
+    if (!superAdminUser) {
+      return NextResponse.json(
+        { error: 'Acesso negado. Nenhum super administrador encontrado.' },
+        { status: 403 }
+      );
+    }
+
+    console.log('Iniciando configuração do banco de dados por:', superAdminUser.nome);
 
     // Executar prisma db push para criar as tabelas
     try {
