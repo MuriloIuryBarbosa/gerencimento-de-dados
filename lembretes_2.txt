@@ -1,0 +1,44 @@
+UX/UI
+	-Melhorar localização do botão de idiomas e notificações pois estão sobrepondo os ícones de ação dentro dos módulos
+	- Os dashboards de cada módulo ficou muito bem montado! utilize aquele padrão para também a rota "/" e para os dashboards dos submódulos como por exemplo ordem de compra, proforma control e assim por diante. 
+
+ROTA "/admin"
+
+	- Criar botão de edição de usuário na lista que fica no final da pagina
+	-
+
+
+
+ROTA /ordem-compra
+	- Sequencia para criação de OCs:
+		- Criar OC
+		- Após criar OC ela vai para requisições (nesse momento o documento se chama PO) para aprovação da diretoria
+		- Após arovação da requisição de PO vai para requisição novamente no aguardo do numero de PI (proforma invoice) 
+		- Após a aprovação o documento se chamará PI
+
+	- Melhorias:	
+		- o card com "Total de ordens" deve fazer a contagem de quantas ordens existem no banco de dados, seja em aguardo de aprovação (na tela de requisições) ou seja já aprovada para fluxo de importação (contêiner e follow up)
+		- o card Pendentes aprovação deve fazer a contagem de quantas OCs estão aguardando aprovação na tela de "Requisições"
+		- o card Pendente de informações deve mostrar a quantidade de Ocs que estão no sistema como rascunho ( pois ainda não tem todos os dados completos para enviar para aprovação)
+		- O card prazo estourado deve fazer a contagem de OCs que estão estourando o prazo de atendimento (preenchimento de todos os dados, cadastrando-os para criar OCs) 
+		- O Tempo de cada etapa para saber o estouro de tempo deve ser configurado em um submenu novo que deve ser adicionado ao módulo no menu lateral "executivo" 
+			- nessa tela pode-se configurar quantos dias devem ser a etapa de criação da OC (desde o dia que ela foi iniciada, até o envio para a requisição de aprovação)		- Configurar quantos dias uma OC pode aguardar aprovação para virar uma PO 
+			- Configurar quantos dias uma PO pode aguardar para receber os dados para que se torne uma PI
+
+ROTA /planejamento
+	- o card de ordens pendentes deve mostrar a somatória de quantidades de OCs pendentes de aprovação + quantidade de OCs com prazo estourado!
+
+ROTA /requisições
+	- O card total de requisições deve mostrar a quantidade de documentos totais aguardando aprovação (seja o documento uma OC aguardando aprovação para se tornar PO ou uma PO aguardando dados e aprovação para se tornar uma PI) 
+	- deve-se mostrar nessa lista de requisições aguardando aprovações e/ou dados qual é o tipo de documento (OC pendente ou PO Pendente)
+	- Essa pagina deve conter uma forma de filtrar esses tipos de documentos
+	- Substituir o card Aguardando aprovação por OC pendente e qual a quantidade de OCs pendentes de aprovação 
+	- substituir o card pendente proforma para PO Pendente e qual a quantidade de POs aprovadas aguardando dados (numero de PI) para ser aprovada e sair da tela de requisições
+	- Remova o card "aprovadas" nessa pagina 
+
+ROTA /proforma
+	- nessa tela deverão aparecer as Proformas em andamento (seja ela PO pendente ou PI incompleta ou completa) 
+	- nessa tela deve-se listar a somatória de todas  proforms
+	- Quantidade de aprovadas é a soma de PO aprovadas para se tornar PI e a quantidade de PI aprovadas para importação 
+	- Pendentes é a soma dos dois tipos de processos que estão aguardando aprovação
+	- Expiradas é a quantidade de Proforms que já ultrapassou o lead time de atendimento definido no módulo executivo
