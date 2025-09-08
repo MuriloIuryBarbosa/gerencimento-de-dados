@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useLanguage } from "../../../components/LanguageContext";
-import { Save, FileText, Eye, EyeOff, Users, Calendar, DollarSign, Package, Truck, Factory, Globe, Plus } from 'lucide-react';
+import { Save, FileText, Eye, EyeOff, Users, Calendar, DollarSign, Package, Truck, Factory, Globe, Plus, Search, X } from 'lucide-react';
 import EmpresaModal from "../../../components/EmpresaModal";
+import SKUModal from "../../../components/SKUModal";
 
 interface Empresa {
   id: number;
@@ -12,21 +13,54 @@ interface Empresa {
   cnpj: string;
 }
 
-interface Produto {
+interface SKU {
   id: string;
   nome: string;
-  familia: string;
-  uneg: string;
+  descricao: string;
+  categoria: string;
+  unidade: string;
+  precoVenda: number | null;
+  custoMedio: number | null;
+  estoqueMinimo: number;
+}
+
+interface ItemOrdemCompra {
+  id: string;
+  skuId: string;
+  skuNome: string;
+  quantidade: number;
+  unidade: string;
+  valorUnitario: number;
+  valorTotal: number;
+  descricao: string;
 }
 
 export default function NovaOrdemCompra() {
   const { t } = useLanguage();
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
-  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [skus, setSkus] = useState<SKU[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPI, setShowPI] = useState(false);
   const [isDraft, setIsDraft] = useState(false);
   const [showEmpresaModal, setShowEmpresaModal] = useState(false);
+  const [showSKUModal, setShowSKUModal] = useState(false);
+
+  // Estados para busca
+  const [skuSearch, setSkuSearch] = useState('');
+  const [showSkuDropdown, setShowSkuDropdown] = useState(false);
+  const [selectedSku, setSelectedSku] = useState<SKU | null>(null);
+
+  // Estados para múltiplos itens
+  const [itens, setItens] = useState<ItemOrdemCompra[]>([]);
+  const [currentItem, setCurrentItem] = useState({
+    skuId: '',
+    skuNome: '',
+    quantidade: 1,
+    unidade: 'UN',
+    valorUnitario: 0,
+    valorTotal: 0,
+    descricao: ''
+  });
 
   const [formData, setFormData] = useState({
     // Campos OC (Ordem de Compra) - Azul
@@ -81,12 +115,14 @@ export default function NovaOrdemCompra() {
           }
         }
 
-        // Simulação de produtos - em produção viriam da API de SKUs
-        setProdutos([
-          { id: "PROD001", nome: "Camiseta Básica", familia: "FAM001", uneg: "UNEG001" },
-          { id: "PROD002", nome: "Calça Jeans", familia: "FAM002", uneg: "UNEG002" },
-          { id: "PROD003", nome: "Tênis Esportivo", familia: "FAM003", uneg: "UNEG003" }
-        ]);
+        // Buscar SKUs da API
+        const skusResponse = await fetch('/api/skus?limit=50');
+        if (skusResponse.ok) {
+          const skusData = await skusResponse.json();
+          if (skusData.success) {
+            setSkus(skusData.data);
+          }
+        }
       } catch (error) {
         console.error('Erro ao buscar dados:', error);
       } finally {
@@ -105,15 +141,105 @@ export default function NovaOrdemCompra() {
     }));
   };
 
-  const handleEmpresaChange = (empresaId: string) => {
-    const empresa = empresas.find(e => e.id.toString() === empresaId);
-    if (empresa) {
-      setFormData(prev => ({
-        ...prev,
-        empresaId,
-        empresaNome: empresa.nome
-      }));
+  const handleSkuSearch = async (searchTerm: string) => {
+    setSkuSearch(searchTerm);
+    if (searchTerm.length >= 2) {
+      try {
+        const response = await fetch(`/api/skus?search=${encodeURIComponent(searchTerm)}&limit=10`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setSkus(data.data);
+            setShowSkuDropdown(true);
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao buscar SKUs:', error);
+      }
+    } else {
+      setShowSkuDropdown(false);
     }
+  };
+
+  const handleSkuSelect = (sku: SKU) => {
+    setSelectedSku(sku);
+    setSkuSearch(sku.nome);
+    setShowSkuDropdown(false);
+
+    // Preencher campos automaticamente
+    setFormData(prev => ({
+      ...prev,
+      produtoDescricao: sku.nome,
+      uneg: sku.id.substring(0, 6), // Extrair UNEG do ID do SKU
+      familiaCodigo: sku.categoria || '',
+      familiaNome: sku.categoria || ''
+    }));
+
+    // Atualizar item atual
+    setCurrentItem(prev => ({
+      ...prev,
+      skuId: sku.id,
+      skuNome: sku.nome,
+      unidade: sku.unidade,
+      valorUnitario: sku.custoMedio || sku.precoVenda || 0,
+      descricao: sku.descricao || sku.nome
+    }));
+  };
+
+  const handleAddItem = () => {
+    if (!currentItem.skuId || !currentItem.skuNome) {
+      alert('Selecione um SKU primeiro!');
+      return;
+    }
+
+    if (currentItem.quantidade <= 0) {
+      alert('Quantidade deve ser maior que zero!');
+      return;
+    }
+
+    const valorTotal = currentItem.quantidade * currentItem.valorUnitario;
+
+    const newItem: ItemOrdemCompra = {
+      id: `item_${Date.now()}`,
+      ...currentItem,
+      valorTotal
+    };
+
+    setItens(prev => [...prev, newItem]);
+
+    // Reset current item
+    setCurrentItem({
+      skuId: '',
+      skuNome: '',
+      quantidade: 1,
+      unidade: 'UN',
+      valorUnitario: 0,
+      valorTotal: 0,
+      descricao: ''
+    });
+    setSelectedSku(null);
+    setSkuSearch('');
+  };
+
+  const handleRemoveItem = (itemId: string) => {
+    setItens(prev => prev.filter(item => item.id !== itemId));
+  };
+
+  const handleItemChange = (field: string, value: any) => {
+    setCurrentItem(prev => {
+      const updated = { ...prev, [field]: value };
+
+      // Recalcular valor total quando quantidade ou valor unitário mudar
+      if (field === 'quantidade' || field === 'valorUnitario') {
+        updated.valorTotal = updated.quantidade * updated.valorUnitario;
+      }
+
+      return updated;
+    });
+  };
+
+  const getTotalValue = () => {
+    return itens.reduce((total, item) => total + item.valorTotal, 0);
   };
 
   const handleEmpresaSave = (novaEmpresa: any) => {
@@ -136,19 +262,28 @@ export default function NovaOrdemCompra() {
     setShowEmpresaModal(false);
   };
 
+  const handleSKUSave = (novoSKU: any) => {
+    // Adicionar o novo SKU à lista
+    setSkus(prev => [...prev, novoSKU]);
+
+    // Selecionar automaticamente o novo SKU
+    handleSkuSelect(novoSKU);
+
+    // Fechar o modal
+    setShowSKUModal(false);
+  };
+
   const handleEmpresaCancel = () => {
     setShowEmpresaModal(false);
   };
 
-  const handleProdutoChange = (produtoId: string) => {
-    const produto = produtos.find(p => p.id === produtoId);
-    if (produto) {
+  const handleEmpresaChange = (empresaId: string) => {
+    const empresa = empresas.find(e => e.id.toString() === empresaId);
+    if (empresa) {
       setFormData(prev => ({
         ...prev,
-        uneg: produto.uneg,
-        familiaCodigo: produto.familia,
-        familiaNome: produto.familia,
-        produtoDescricao: produto.nome
+        empresaId,
+        empresaNome: empresa.nome
       }));
     }
   };
@@ -156,12 +291,19 @@ export default function NovaOrdemCompra() {
   const handleSubmit = async (e: React.FormEvent, saveAsDraft = false) => {
     e.preventDefault();
 
+    if (itens.length === 0) {
+      alert('Adicione pelo menos um item à ordem de compra!');
+      return;
+    }
+
     try {
       const id = `OC-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
 
       const ordemData = {
         id,
         ...formData,
+        itens, // Incluir os itens
+        valorTotal: getTotalValue(), // Calcular valor total
         status: saveAsDraft ? 'Rascunho' : 'Pendente Aprovação',
         usuarioCriadorNome: 'Administrador', // Em produção, viria do contexto do usuário
         dataCriacao: new Date().toISOString()
@@ -182,7 +324,8 @@ export default function NovaOrdemCompra() {
           window.location.href = '/ordem-compra';
         }
       } else {
-        throw new Error('Erro ao salvar');
+        const errorData = await response.json();
+        alert(`Erro: ${errorData.error}`);
       }
     } catch (error) {
       console.error('Erro:', error);
@@ -286,19 +429,163 @@ export default function NovaOrdemCompra() {
                     <Package size={16} />
                     <span>Produto *</span>
                   </label>
-                  <select
-                    name="produtoId"
-                    onChange={(e) => handleProdutoChange(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                  >
-                    <option value="">Selecione o produto...</option>
-                    {produtos.map((produto) => (
-                      <option key={produto.id} value={produto.id}>
-                        {produto.nome} - {produto.familia}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex gap-2">
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        value={skuSearch}
+                        onChange={(e) => handleSkuSearch(e.target.value)}
+                        onFocus={() => skuSearch && setShowSkuDropdown(true)}
+                        placeholder="Buscar SKU por nome ou ID..."
+                        className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                      />
+                      {showSkuDropdown && skus.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                          {skus.map((sku) => (
+                            <div
+                              key={sku.id}
+                              onClick={() => handleSkuSelect(sku)}
+                              className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                            >
+                              <div className="font-medium text-gray-900">{sku.nome}</div>
+                              <div className="text-sm text-gray-500">
+                                ID: {sku.id} | Categoria: {sku.categoria || 'N/A'} | Preço: {sku.precoVenda ? `R$ ${sku.precoVenda.toFixed(2)}` : 'N/A'}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowSKUModal(true)}
+                      className="px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
+                      title="Adicionar novo SKU"
+                    >
+                      <Plus size={20} />
+                    </button>
+                  </div>
+                  {selectedSku && (
+                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="text-sm text-blue-800">
+                        <strong>Selecionado:</strong> {selectedSku.nome} ({selectedSku.id})
+                      </div>
+                      <div className="text-xs text-blue-600 mt-1">
+                        Categoria: {selectedSku.categoria || 'N/A'} |
+                        Unidade: {selectedSku.unidade} |
+                        Preço: {selectedSku.precoVenda ? `R$ ${selectedSku.precoVenda.toFixed(2)}` : 'N/A'}
+                      </div>
+                    </div>
+                  )}
                 </div>
+              </div>
+
+              {/* Seção de Itens da Ordem de Compra */}
+              <div className="mt-8 p-6 bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-purple-800">📦 Itens da Ordem de Compra</h3>
+                  <div className="text-sm text-purple-600">
+                    Total: <span className="font-bold">R$ {getTotalValue().toFixed(2)}</span>
+                  </div>
+                </div>
+
+                {/* Formulário para adicionar item */}
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6 p-4 bg-white rounded-lg border border-purple-200">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-purple-700">Quantidade</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={currentItem.quantidade}
+                      onChange={(e) => handleItemChange('quantidade', parseInt(e.target.value) || 1)}
+                      className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-purple-700">Unidade</label>
+                    <select
+                      value={currentItem.unidade}
+                      onChange={(e) => handleItemChange('unidade', e.target.value)}
+                      className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                    >
+                      <option value="UN">UN</option>
+                      <option value="KG">KG</option>
+                      <option value="M">M</option>
+                      <option value="M2">M²</option>
+                      <option value="M3">M³</option>
+                      <option value="L">L</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-purple-700">Valor Unitário</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={currentItem.valorUnitario}
+                      onChange={(e) => handleItemChange('valorUnitario', parseFloat(e.target.value) || 0)}
+                      className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                      placeholder="0.00"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-purple-700">Valor Total</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={currentItem.valorTotal.toFixed(2)}
+                      readOnly
+                      className="w-full px-3 py-2 border border-purple-300 rounded-lg bg-gray-50"
+                    />
+                  </div>
+
+                  <div className="space-y-2 flex items-end">
+                    <button
+                      type="button"
+                      onClick={handleAddItem}
+                      disabled={!selectedSku}
+                      className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Plus size={16} className="inline mr-2" />
+                      Adicionar
+                    </button>
+                  </div>
+                </div>
+
+                {/* Lista de itens */}
+                {itens.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-md font-semibold text-purple-800 mb-3">Itens Adicionados:</h4>
+                    {itens.map((item, index) => (
+                      <div key={item.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-purple-200">
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">{item.skuNome}</div>
+                          <div className="text-sm text-gray-600">
+                            {item.quantidade} {item.unidade} × R$ {item.valorUnitario.toFixed(2)} = R$ {item.valorTotal.toFixed(2)}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveItem(item.id)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                          title="Remover item"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {itens.length === 0 && (
+                  <div className="text-center py-8 text-purple-600">
+                    <Package size={48} className="mx-auto mb-4 opacity-50" />
+                    <p>Nenhum item adicionado ainda.</p>
+                    <p className="text-sm">Selecione um SKU e adicione itens à ordem de compra.</p>
+                  </div>
+                )}
               </div>
 
               {/* Linha 2 - UNEG e Família */}
@@ -777,6 +1064,13 @@ export default function NovaOrdemCompra() {
         isOpen={showEmpresaModal}
         onSave={handleEmpresaSave}
         onCancel={handleEmpresaCancel}
+      />
+
+      {/* Modal de Cadastro de SKU */}
+      <SKUModal
+        isOpen={showSKUModal}
+        onSave={handleSKUSave}
+        onCancel={() => setShowSKUModal(false)}
       />
     </div>
   );

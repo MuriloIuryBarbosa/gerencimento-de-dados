@@ -33,9 +33,21 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validar dados obrigatórios
-    if (!body.empresaId || !body.uneg || !body.familiaCodigo) {
+    if (!body.empresaId || !body.uneg || !body.familiaCodigo || !body.itens || body.itens.length === 0) {
       return NextResponse.json(
-        { error: 'Dados obrigatórios não fornecidos (empresa, UNEG, família)' },
+        { error: 'Dados obrigatórios não fornecidos (empresa, UNEG, família, itens)' },
+        { status: 400 }
+      );
+    }
+
+    // Verificar se a empresa existe
+    const empresa = await prisma.empresa.findUnique({
+      where: { id: parseInt(body.empresaId) }
+    });
+
+    if (!empresa) {
+      return NextResponse.json(
+        { error: 'Empresa não encontrada. Verifique se a empresa foi cadastrada corretamente.' },
         { status: 400 }
       );
     }
@@ -64,7 +76,7 @@ export async function POST(request: NextRequest) {
         week_factory: body.weekFactory || null,
         date_of_sale: body.dateOfSale ? new Date(body.dateOfSale) : null,
         prop_cont: body.propCont || null,
-        original_total_value: body.originalTotalValue ? parseFloat(body.originalTotalValue) : null,
+        original_total_value: body.valorTotal || 0, // Usar o valor total calculado
         cost_in_dollars: body.costInDollars ? parseFloat(body.costInDollars) : null,
         total_value_dollars_item: body.totalValueDollarsItem ? parseFloat(body.totalValueDollarsItem) : null,
         total_value_dollars_uc: body.totalValueDollarsUc ? parseFloat(body.totalValueDollarsUc) : null,
@@ -89,6 +101,25 @@ export async function POST(request: NextRequest) {
         empresa: true
       }
     });
+
+    // Criar os itens da ordem de compra
+    if (body.itens && Array.isArray(body.itens)) {
+      for (const item of body.itens) {
+        await prisma.itemOrdemCompra.create({
+          data: {
+            ordemId: id,
+            skuId: item.skuId,
+            descricao: item.descricao || item.skuNome,
+            quantidade: item.quantidade,
+            unidade: item.unidade,
+            valorUnitario: item.valorUnitario,
+            valorTotal: item.valorTotal,
+            dataEntrega: null, // Pode ser definido depois
+            status: 'Pendente'
+          }
+        });
+      }
+    }
 
     // Criar entrada no histórico
     await prisma.ordensCompraHistorico.create({

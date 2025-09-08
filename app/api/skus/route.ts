@@ -1,13 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search') || '';
+    const limit = parseInt(searchParams.get('limit') || '10');
+
     const skus = await prisma.sKU.findMany({
-      where: { ativo: true },
-      orderBy: { nome: 'asc' }
+      where: {
+        ativo: true,
+        OR: [
+          { nome: { contains: search, mode: 'insensitive' } },
+          { id: { contains: search, mode: 'insensitive' } },
+          { descricao: { contains: search, mode: 'insensitive' } }
+        ]
+      },
+      select: {
+        id: true,
+        nome: true,
+        descricao: true,
+        categoria: true,
+        unidade: true,
+        precoVenda: true,
+        custoMedio: true,
+        estoqueMinimo: true
+      },
+      orderBy: { nome: 'asc' },
+      take: limit
     });
-    return NextResponse.json(skus);
+
+    return NextResponse.json({
+      success: true,
+      data: skus
+    });
   } catch (error) {
     console.error('Erro ao buscar SKUs:', error);
     return NextResponse.json(
