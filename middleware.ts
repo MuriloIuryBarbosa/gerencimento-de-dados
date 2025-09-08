@@ -9,7 +9,7 @@ export function middleware(request: NextRequest) {
     '/proforma',
     '/requisicoes',
     '/conteineres',
-    '/follow-up',
+    '/followup',
     '/executivo',
     '/settings'
   ]

@@ -87,35 +87,38 @@ export default function Home() {
         {/* Módulos do Sistema */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Módulos do Sistema</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Módulo Planejamento */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Módulo Cadastro */}
             <div className="bg-white shadow rounded-lg p-6">
               <div className="flex items-center mb-4">
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-2xl">
-                    📊
+                  <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center text-2xl">
+                    �
                   </div>
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900">Planejamento</h3>
-                  <p className="text-sm text-gray-500">Gestão de ordens, proformas e logística</p>
+                  <h3 className="text-lg font-medium text-gray-900">Cadastro</h3>
+                  <p className="text-sm text-gray-500">Gestão de cadastros básicos do sistema</p>
                 </div>
               </div>
               <div className="space-y-2">
-                <a href="/ordem-compra" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
-                  📋 Ordens de Compra
+                <a href="/cadastro/skus" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                  🏷️ SKUs
                 </a>
-                <a href="/proforma" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
-                  📄 Proformas
+                <a href="/cadastro/cores" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                  🎨 Cores
                 </a>
-                <a href="/requisicoes" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
-                  📝 Requisições
+                <a href="/cadastro/clientes" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                  � Clientes
                 </a>
-                <a href="/conteineres" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
-                  📦 Conteineres
+                <a href="/cadastro/fornecedores" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                  🏭 Fornecedores
                 </a>
-                <a href="/follow-up" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
-                  🚛 Follow Up
+                <a href="/cadastro/representantes" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                  � Representantes
+                </a>
+                <a href="/cadastro/transportadoras" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                  � Transportadoras
                 </a>
               </div>
             </div>
@@ -145,6 +148,38 @@ export default function Home() {
                 </a>
                 <a href="/executivo/cores" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
                   🎨 Controle de Cores
+                </a>
+              </div>
+            </div>
+
+            {/* Módulo Planejamento */}
+            <div className="bg-white shadow rounded-lg p-6">
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-2xl">
+                    📊
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-gray-900">Planejamento</h3>
+                  <p className="text-sm text-gray-500">Gestão de ordens, proformas e logística</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <a href="/ordem-compra" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                  📋 Ordens de Compra
+                </a>
+                <a href="/proforma" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                  📄 Proformas
+                </a>
+                <a href="/requisicoes" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                  📝 Requisições
+                </a>
+                <a href="/conteineres" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                  📦 Conteineres
+                </a>
+                <a href="/followup" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                  🚛 Follow Up
                 </a>
               </div>
             </div>
@@ -203,8 +238,9 @@ export default function Home() {
               <h3 className="text-sm font-medium text-blue-800">💡 Dicas do Sistema</h3>
               <div className="mt-2 text-sm text-blue-700">
                 <p>• Use o menu lateral para navegar entre os módulos</p>
-                <p>• O módulo Planejamento contém todas as funcionalidades de gestão de pedidos</p>
+                <p>• O módulo Cadastro contém todas as funcionalidades de gestão de cadastros básicos</p>
                 <p>• O módulo Executivo oferece controle sobre produtos e operações</p>
+                <p>• O módulo Planejamento contém todas as funcionalidades de gestão de pedidos</p>
                 <p>• Configure suas preferências no módulo Configurações</p>
               </div>
             </div>

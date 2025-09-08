@@ -94,7 +94,7 @@ export default function DetalhesFollowUp() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Follow Up não encontrado</h1>
           <Link
-            href="/follow-up"
+            href="/followup"
             className="text-blue-600 hover:text-blue-800"
           >
             Voltar para Follow Up
@@ -187,7 +187,7 @@ export default function DetalhesFollowUp() {
             </div>
             <nav className="flex space-x-4">
               <Link
-                href="/follow-up"
+                href="/followup"
                 className="text-blue-600 hover:text-blue-800 font-medium"
               >
                 ← Voltar

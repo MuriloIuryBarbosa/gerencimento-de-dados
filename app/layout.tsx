@@ -5,26 +5,10 @@ import { usePathname } from "next/navigation";
 import type { Metadata } from "next";
 import "./globals.css";
 import Sidebar from "../components/Sidebar";
-import { LanguageProvider, useLanguage } from "../components/LanguageContext";
+import { LanguageProvider } from "../components/LanguageContext";
 import { NotificationProvider } from "../components/Notification";
 import { AuthProvider } from "../components/AuthContext";
-
-function LanguageSelector() {
-  const { language, setLanguage, t } = useLanguage();
-
-  return (
-    <div className="fixed top-4 right-4 z-50">
-      <select
-        value={language}
-        onChange={(e) => setLanguage(e.target.value as 'pt' | 'en')}
-        className="bg-white border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <option value="pt">{t('portuguese')}</option>
-        <option value="en">{t('english')}</option>
-      </select>
-    </div>
-  );
-}
+import TopBar from "../components/TopBar";
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -58,7 +42,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         )}
-        <LanguageSelector />
+        <TopBar />
         {children}
       </main>
     </div>

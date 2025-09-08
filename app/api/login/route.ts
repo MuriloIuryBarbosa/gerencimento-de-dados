@@ -11,9 +11,12 @@ export async function POST(request: Request) {
       console.log('API Login - Authentication successful');
       const user = {
         id: 1,
+        nome: 'Administrador',
         email: 'admin@example.com',
-        name: 'Administrador',
-        role: 'admin',
+        cargo: 'admin',
+        isAdmin: true,
+        isSuperAdmin: false,
+        permissoes: ['read', 'write', 'admin'],
       };
 
       console.log('API Login - Returning user:', user);

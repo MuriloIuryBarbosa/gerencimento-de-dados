@@ -3,67 +3,90 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useLanguage } from "../../../components/LanguageContext";
+import { Save, FileText, Eye, EyeOff, Users, Calendar, DollarSign, Package, Truck, Factory, Globe, Plus } from 'lucide-react';
+import EmpresaModal from "../../../components/EmpresaModal";
 
-interface Fornecedor {
+interface Empresa {
   id: number;
   nome: string;
-  cnpj: string | null;
-  endereco: string | null;
-  telefone: string | null;
-  email: string | null;
+  cnpj: string;
 }
 
-interface SKU {
+interface Produto {
   id: string;
   nome: string;
-  unidade: string;
-  descricao: string | null;
+  familia: string;
+  uneg: string;
 }
 
 export default function NovaOrdemCompra() {
   const { t } = useLanguage();
-  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
-  const [skus, setSkus] = useState<SKU[]>([]);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPI, setShowPI] = useState(false);
+  const [isDraft, setIsDraft] = useState(false);
+  const [showEmpresaModal, setShowEmpresaModal] = useState(false);
+
   const [formData, setFormData] = useState({
-    fornecedorId: "",
-    fornecedor: "",
-    cnpj: "",
-    endereco: "",
-    telefone: "",
-    email: "",
-    condicaoPagamento: "",
-    prazoEntrega: "",
-    observacoes: "",
-    itens: [
-      {
-        skuId: "",
-        descricao: "",
-        quantidade: 1,
-        unidade: "un",
-        valorUnitario: 0,
-        valorTotal: 0
-      }
-    ]
+    // Campos OC (Ordem de Compra) - Azul
+    empresaId: "",
+    empresaNome: "",
+    uneg: "",
+    familiaCodigo: "",
+    familiaNome: "",
+    produtoDescricao: "",
+    codTamanho: "",
+    observacao: "",
+    capacidadeContainer: "",
+    planejadoCompra: "",
+    etdTarget: "",
+    weekEtd: "",
+    transitTime: "",
+    leadTime: "",
+    factoryDate: "",
+    weekFactory: "",
+    dateOfSale: "",
+    propCont: "",
+    originalTotalValue: "",
+    costInDollars: "",
+    totalValueDollarsItem: "",
+    totalValueDollarsUc: "",
+
+    // Campos PI (Proforma Invoice) - Verde
+    piNumero: "",
+    piDate: "",
+    piCountry: "",
+    piSupplier: "",
+    piObs: "",
+    piOriginalCurrency: "",
+    piOriginalCost: "",
+
+    // Totais
+    totalContainers: "",
+
+    // Controle
+    compartilhadoCom: [] as string[]
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [fornecedoresRes, skusRes] = await Promise.all([
-          fetch('/api/fornecedores'),
-          fetch('/api/skus')
+        // Buscar empresas da API
+        const empresasResponse = await fetch('/api/empresas-novo');
+        if (empresasResponse.ok) {
+          const empresasData = await empresasResponse.json();
+          if (empresasData.success) {
+            setEmpresas(empresasData.data);
+          }
+        }
+
+        // Simulação de produtos - em produção viriam da API de SKUs
+        setProdutos([
+          { id: "PROD001", nome: "Camiseta Básica", familia: "FAM001", uneg: "UNEG001" },
+          { id: "PROD002", nome: "Calça Jeans", familia: "FAM002", uneg: "UNEG002" },
+          { id: "PROD003", nome: "Tênis Esportivo", familia: "FAM003", uneg: "UNEG003" }
         ]);
-
-        if (fornecedoresRes.ok) {
-          const fornecedoresData = await fornecedoresRes.json();
-          setFornecedores(fornecedoresData);
-        }
-
-        if (skusRes.ok) {
-          const skusData = await skusRes.json();
-          setSkus(skusData);
-        }
       } catch (error) {
         console.error('Erro ao buscar dados:', error);
       } finally {
@@ -82,122 +105,69 @@ export default function NovaOrdemCompra() {
     }));
   };
 
-  const handleItemChange = (index: number, field: string, value: string | number) => {
-    const updatedItens = [...formData.itens];
-    updatedItens[index] = {
-      ...updatedItens[index],
-      [field]: value
-    };
-
-    // Calcular valor total do item
-    if (field === 'quantidade' || field === 'valorUnitario') {
-      const quantidade = field === 'quantidade' ? Number(value) : updatedItens[index].quantidade;
-      const valorUnitario = field === 'valorUnitario' ? Number(value) : updatedItens[index].valorUnitario;
-      updatedItens[index].valorTotal = quantidade * valorUnitario;
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      itens: updatedItens
-    }));
-  };
-
-  const addItem = () => {
-    setFormData(prev => ({
-      ...prev,
-      itens: [
-        ...prev.itens,
-        {
-          skuId: "",
-          descricao: "",
-          quantidade: 1,
-          unidade: "un",
-          valorUnitario: 0,
-          valorTotal: 0
-        }
-      ]
-    }));
-  };
-
-  const removeItem = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      itens: prev.itens.filter((_, i) => i !== index)
-    }));
-  };
-
-  const calcularTotalGeral = () => {
-    return formData.itens.reduce((total, item) => total + item.valorTotal, 0);
-  };
-
-  const handleFornecedorChange = (fornecedorId: string) => {
-    const fornecedor = fornecedores.find(f => f.id.toString() === fornecedorId);
-    if (fornecedor) {
+  const handleEmpresaChange = (empresaId: string) => {
+    const empresa = empresas.find(e => e.id.toString() === empresaId);
+    if (empresa) {
       setFormData(prev => ({
         ...prev,
-        fornecedorId,
-        fornecedor: fornecedor.nome,
-        cnpj: fornecedor.cnpj || "",
-        endereco: fornecedor.endereco || "",
-        telefone: fornecedor.telefone || "",
-        email: fornecedor.email || ""
+        empresaId,
+        empresaNome: empresa.nome
       }));
     }
   };
 
-  const handleSkuChange = (index: number, skuId: string) => {
-    const sku = skus.find(s => s.id === skuId);
-    const updatedItens = [...formData.itens];
-    if (sku) {
-      updatedItens[index] = {
-        ...updatedItens[index],
-        skuId,
-        descricao: sku.nome,
-        unidade: sku.unidade
-      };
-    } else {
-      updatedItens[index] = {
-        ...updatedItens[index],
-        skuId,
-        descricao: "",
-        unidade: "un"
-      };
-    }
+  const handleEmpresaSave = (novaEmpresa: any) => {
+    // Adicionar a nova empresa à lista
+    const empresaAdicionada = {
+      id: Date.now(), // ID temporário
+      nome: novaEmpresa.nome,
+      cnpj: novaEmpresa.cnpj
+    };
+    setEmpresas(prev => [...prev, empresaAdicionada]);
+
+    // Selecionar automaticamente a nova empresa
     setFormData(prev => ({
       ...prev,
-      itens: updatedItens
+      empresaId: empresaAdicionada.id.toString(),
+      empresaNome: empresaAdicionada.nome
     }));
+
+    // Fechar o modal
+    setShowEmpresaModal(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmpresaCancel = () => {
+    setShowEmpresaModal(false);
+  };
+
+  const handleProdutoChange = (produtoId: string) => {
+    const produto = produtos.find(p => p.id === produtoId);
+    if (produto) {
+      setFormData(prev => ({
+        ...prev,
+        uneg: produto.uneg,
+        familiaCodigo: produto.familia,
+        familiaNome: produto.familia,
+        produtoDescricao: produto.nome
+      }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent, saveAsDraft = false) => {
     e.preventDefault();
 
     try {
-      // Gerar ID único para a ordem
       const id = `OC-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
 
       const ordemData = {
         id,
-        fornecedor: formData.fornecedor,
-        cnpj: formData.cnpj,
-        endereco: formData.endereco,
-        telefone: formData.telefone,
-        email: formData.email,
-        condicaoPagamento: formData.condicaoPagamento,
-        prazoEntrega: formData.prazoEntrega,
-        observacoes: formData.observacoes,
-        prioridade: "Média", // Valor padrão
-        itens: formData.itens.map(item => ({
-          skuId: `SKU-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`, // Gerar SKU temporário
-          descricao: item.descricao,
-          quantidade: item.quantidade,
-          unidade: item.unidade,
-          valorUnitario: item.valorUnitario,
-          dataEntrega: formData.prazoEntrega
-        }))
+        ...formData,
+        status: saveAsDraft ? 'Rascunho' : 'Pendente Aprovação',
+        usuarioCriadorNome: 'Administrador', // Em produção, viria do contexto do usuário
+        dataCriacao: new Date().toISOString()
       };
 
-      const response = await fetch('/api/ordens-compra', {
+      const response = await fetch('/api/ordens-compra-novo', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -206,342 +176,608 @@ export default function NovaOrdemCompra() {
       });
 
       if (response.ok) {
-        alert(t('purchaseOrderCreated'));
-        // Resetar formulário ou redirecionar
-        setFormData({
-          fornecedorId: "",
-          fornecedor: "",
-          cnpj: "",
-          endereco: "",
-          telefone: "",
-          email: "",
-          condicaoPagamento: "",
-          prazoEntrega: "",
-          observacoes: "",
-          itens: [
-            {
-              skuId: "",
-              descricao: "",
-              quantidade: 1,
-              unidade: "un",
-              valorUnitario: 0,
-              valorTotal: 0
-            }
-          ]
-        });
+        alert(saveAsDraft ? 'Rascunho salvo com sucesso!' : 'Ordem de compra criada com sucesso!');
+        if (!saveAsDraft) {
+          // Resetar formulário ou redirecionar
+          window.location.href = '/ordem-compra';
+        }
       } else {
-        throw new Error('Erro ao criar ordem de compra');
+        throw new Error('Erro ao salvar');
       }
     } catch (error) {
       console.error('Erro:', error);
-      alert(t('errorCreatingOrder'));
+      alert('Erro ao salvar ordem de compra');
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando formulário...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
+      {/* Header Moderno */}
+      <header className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{t('newPurchaseOrder')}</h1>
-              <p className="mt-1 text-sm text-gray-500">
-                {t('fillDataNewOrder')}
-              </p>
+            <div className="flex items-center space-x-4">
+              <div className="bg-white/20 p-3 rounded-full">
+                <FileText size={32} className="text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-white">Nova Ordem de Compra</h1>
+                <p className="mt-1 text-blue-100">
+                  Preencha os dados da OC e Proforma Invoice
+                </p>
+              </div>
             </div>
-            <nav className="flex space-x-4">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 bg-white/20 px-4 py-2 rounded-full">
+                <Eye size={16} className="text-white" />
+                <span className="text-white text-sm">Modo Visual</span>
+              </div>
               <Link
                 href="/ordem-compra"
-                className="text-blue-600 hover:text-blue-800 font-medium"
+                className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full transition-colors duration-200"
               >
-                ← {t('back')}
+                ← Voltar
               </Link>
-            </nav>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Dados do Fornecedor */}
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                {t('supplierInfo')}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('supplier')} *
+      <main className="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
+        <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-8">
+
+          {/* Seção OC - Ordem de Compra (Azul) */}
+          <div className="bg-white shadow-xl rounded-2xl overflow-hidden border-l-8 border-blue-500">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
+              <div className="flex items-center space-x-3">
+                <Package size={24} className="text-white" />
+                <h2 className="text-xl font-bold text-white">📋 Ordem de Compra (OC)</h2>
+              </div>
+              <p className="text-blue-100 text-sm mt-1">Dados principais da ordem de compra</p>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Linha 1 - Empresa e Produto */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-2 text-sm font-semibold text-blue-700">
+                    <Factory size={16} />
+                    <span>Empresa *</span>
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      name="empresaId"
+                      value={formData.empresaId}
+                      onChange={(e) => handleEmpresaChange(e.target.value)}
+                      required
+                      className="flex-1 px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                    >
+                      <option value="">Selecione a empresa...</option>
+                      {empresas.map((empresa) => (
+                        <option key={empresa.id} value={empresa.id}>
+                          {empresa.nome} - {empresa.cnpj}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setShowEmpresaModal(true)}
+                      className="px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
+                      title="Adicionar nova empresa"
+                    >
+                      <Plus size={20} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-2 text-sm font-semibold text-blue-700">
+                    <Package size={16} />
+                    <span>Produto *</span>
                   </label>
                   <select
-                    value={formData.fornecedorId}
-                    onChange={(e) => handleFornecedorChange(e.target.value)}
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    name="produtoId"
+                    onChange={(e) => handleProdutoChange(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                   >
-                    <option value="">{t('selectSupplier')}</option>
-                    {fornecedores.map((fornecedor) => (
-                      <option key={fornecedor.id} value={fornecedor.id}>
-                        {fornecedor.nome}
+                    <option value="">Selecione o produto...</option>
+                    {produtos.map((produto) => (
+                      <option key={produto.id} value={produto.id}>
+                        {produto.nome} - {produto.familia}
                       </option>
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('cnpj')}
-                  </label>
+              </div>
+
+              {/* Linha 2 - UNEG e Família */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">UNEG</label>
                   <input
                     type="text"
-                    name="cnpj"
-                    value={formData.cnpj}
+                    name="uneg"
+                    value={formData.uneg}
                     onChange={handleInputChange}
-                    placeholder="00.000.000/0000-00"
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Código UNEG"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                   />
                 </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('address')}
-                  </label>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Família (Código)</label>
                   <input
                     type="text"
-                    name="endereco"
-                    value={formData.endereco}
+                    name="familiaCodigo"
+                    value={formData.familiaCodigo}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Código da família"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('phone')}
-                  </label>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Família (Nome)</label>
                   <input
-                    type="tel"
-                    name="telefone"
-                    value={formData.telefone}
+                    type="text"
+                    name="familiaNome"
+                    value={formData.familiaNome}
                     onChange={handleInputChange}
-                    placeholder="(00) 00000-0000"
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Nome da família"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                   />
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Condições Comerciais */}
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                {t('paymentTerms')}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('paymentTerms')} *
-                  </label>
-                  <select
-                    name="condicaoPagamento"
-                    value={formData.condicaoPagamento}
+              {/* Linha 3 - Descrição e Tamanho */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Descrição do Produto</label>
+                  <input
+                    type="text"
+                    name="produtoDescricao"
+                    value={formData.produtoDescricao}
                     onChange={handleInputChange}
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Selecione...</option>
-                    <option value="avista">À Vista</option>
-                    <option value="30dias">30 Dias</option>
-                    <option value="60dias">60 Dias</option>
-                    <option value="90dias">90 Dias</option>
-                  </select>
+                    placeholder="Descrição completa do produto"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('deliveryDeadline')} *
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Código Tamanho</label>
+                  <input
+                    type="text"
+                    name="codTamanho"
+                    value={formData.codTamanho}
+                    onChange={handleInputChange}
+                    placeholder="Código do tamanho"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                </div>
+              </div>
+
+              {/* Linha 4 - Capacidade e Planejado */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Capacidade do Container</label>
+                  <input
+                    type="text"
+                    name="capacidadeContainer"
+                    value={formData.capacidadeContainer}
+                    onChange={handleInputChange}
+                    placeholder="Ex: 20FT, 40FT, etc."
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Planejado para Compra</label>
+                  <input
+                    type="number"
+                    name="planejadoCompra"
+                    value={formData.planejadoCompra}
+                    onChange={handleInputChange}
+                    placeholder="Quantidade planejada"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                </div>
+              </div>
+
+              {/* Linha 5 - Datas ETD */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-2 text-sm font-semibold text-blue-700">
+                    <Calendar size={16} />
+                    <span>ETD Target</span>
                   </label>
                   <input
                     type="date"
-                    name="prazoEntrega"
-                    value={formData.prazoEntrega}
+                    name="etdTarget"
+                    value={formData.etdTarget}
                     onChange={handleInputChange}
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Week ETD</label>
+                  <input
+                    type="text"
+                    name="weekEtd"
+                    value={formData.weekEtd}
+                    onChange={handleInputChange}
+                    placeholder="Semana ETD"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Transit Time</label>
+                  <input
+                    type="number"
+                    name="transitTime"
+                    value={formData.transitTime}
+                    onChange={handleInputChange}
+                    placeholder="Dias"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                   />
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Itens da Ordem */}
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  {t('items')}
-                </h3>
-                <button
-                  type="button"
-                  onClick={addItem}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                >
-                  <svg className="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  {t('addItem')}
-                </button>
-              </div>
+              {/* Linha 6 - Lead Time e Factory */}
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Lead Time</label>
+                  <input
+                    type="number"
+                    name="leadTime"
+                    value={formData.leadTime}
+                    onChange={handleInputChange}
+                    placeholder="Dias"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                </div>
 
-              <div className="space-y-4">
-                {formData.itens.map((item, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h4 className="text-sm font-medium text-gray-900">{t('items')} {index + 1}</h4>
-                      {formData.itens.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeItem(index)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Factory Date</label>
+                  <input
+                    type="date"
+                    name="factoryDate"
+                    value={formData.factoryDate}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700">
-                          {t('sku')} *
-                        </label>
-                        <select
-                          value={item.skuId}
-                          onChange={(e) => handleSkuChange(index, e.target.value)}
-                          required
-                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="">{t('selectSku')}</option>
-                          {skus.map((sku) => (
-                            <option key={sku.id} value={sku.id}>
-                              {sku.nome} ({sku.unidade})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          {t('quantity')} *
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={item.quantidade}
-                          onChange={(e) => handleItemChange(index, 'quantidade', Number(e.target.value))}
-                          required
-                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          {t('unit')}
-                        </label>
-                        <select
-                          value={item.unidade}
-                          onChange={(e) => handleItemChange(index, 'unidade', e.target.value)}
-                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="un">Unidade</option>
-                          <option value="kg">Kg</option>
-                          <option value="m">Metro</option>
-                          <option value="m2">M²</option>
-                          <option value="l">Litro</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          {t('unitValue')} *
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={item.valorUnitario}
-                          onChange={(e) => handleItemChange(index, 'valorUnitario', Number(e.target.value))}
-                          required
-                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                    </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Week Factory</label>
+                  <input
+                    type="text"
+                    name="weekFactory"
+                    value={formData.weekFactory}
+                    onChange={handleInputChange}
+                    placeholder="Semana Factory"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                </div>
 
-                    <div className="mt-4 flex justify-end">
-                      <div className="text-sm text-gray-600">
-                        {t('totalValue')}: <span className="font-semibold">R$ {item.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Total Geral */}
-              <div className="mt-6 border-t pt-4">
-                <div className="flex justify-end">
-                  <div className="text-lg font-semibold text-gray-900">
-                    {t('generalTotal')}: R$ {calcularTotalGeral().toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Date of Sale</label>
+                  <input
+                    type="date"
+                    name="dateOfSale"
+                    value={formData.dateOfSale}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Observações */}
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                {t('observations')}
-              </h3>
-              <div>
+              {/* Linha 7 - Valores */}
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Prop. Cont.</label>
+                  <input
+                    type="text"
+                    name="propCont"
+                    value={formData.propCont}
+                    onChange={handleInputChange}
+                    placeholder="Proposta container"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Original Total Value</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="originalTotalValue"
+                    value={formData.originalTotalValue}
+                    onChange={handleInputChange}
+                    placeholder="0.00"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Cost in Dollars</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="costInDollars"
+                    value={formData.costInDollars}
+                    onChange={handleInputChange}
+                    placeholder="0.00"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Total Value in Dollars (Item)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="totalValueDollarsItem"
+                    value={formData.totalValueDollarsItem}
+                    onChange={handleInputChange}
+                    placeholder="0.00"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                </div>
+              </div>
+
+              {/* Linha 8 - Valores Finais */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Total Value in Dollars (UC)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="totalValueDollarsUc"
+                    value={formData.totalValueDollarsUc}
+                    onChange={handleInputChange}
+                    placeholder="0.00"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-blue-700">Total de Containers</label>
+                  <input
+                    type="number"
+                    name="totalContainers"
+                    value={formData.totalContainers}
+                    onChange={handleInputChange}
+                    placeholder="Quantidade"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                </div>
+              </div>
+
+              {/* Observação OC */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-blue-700">Observação (OC)</label>
                 <textarea
-                  name="observacoes"
-                  value={formData.observacoes}
+                  name="observacao"
+                  value={formData.observacao}
                   onChange={handleInputChange}
-                  rows={4}
-                  placeholder="Digite observações adicionais sobre a ordem de compra..."
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  rows={3}
+                  placeholder="Observações da ordem de compra..."
+                  className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                 />
               </div>
             </div>
           </div>
 
-          {/* Botões de Ação */}
-          <div className="flex justify-end space-x-4">
-            <Link
-              href="/ordem-compra"
-              className="px-6 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-            >
-              {t('cancel')}
-            </Link>
-            <button
-              type="submit"
-              className="px-6 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              {t('createOrder')}
-            </button>
+          {/* Seção PI - Proforma Invoice (Verde) */}
+          <div className="bg-white shadow-xl rounded-2xl overflow-hidden border-l-8 border-green-500">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <FileText size={24} className="text-white" />
+                  <h2 className="text-xl font-bold text-white">📄 Proforma Invoice (PI)</h2>
+                  <button
+                    type="button"
+                    onClick={() => setShowPI(!showPI)}
+                    className="flex items-center space-x-2 bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition-colors duration-200"
+                  >
+                    {showPI ? <EyeOff size={16} /> : <Eye size={16} />}
+                    <span className="text-sm">{showPI ? 'Ocultar' : 'Mostrar'}</span>
+                  </button>
+                </div>
+                <div className="text-green-100 text-sm">
+                  Campos opcionais da PI
+                </div>
+              </div>
+            </div>
+
+            {showPI && (
+              <div className="p-6 space-y-6">
+                {/* Linha 1 - PI Básico */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2 text-sm font-semibold text-green-700">
+                      <FileText size={16} />
+                      <span>PI Número</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="piNumero"
+                      value={formData.piNumero}
+                      onChange={handleInputChange}
+                      placeholder="Número da PI"
+                      className="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2 text-sm font-semibold text-green-700">
+                      <Calendar size={16} />
+                      <span>PI Date</span>
+                    </label>
+                    <input
+                      type="date"
+                      name="piDate"
+                      value={formData.piDate}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2 text-sm font-semibold text-green-700">
+                      <Globe size={16} />
+                      <span>PI Country</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="piCountry"
+                      value={formData.piCountry}
+                      onChange={handleInputChange}
+                      placeholder="País da PI"
+                      className="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200"
+                    />
+                  </div>
+                </div>
+
+                {/* Linha 2 - Fornecedor PI */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2 text-sm font-semibold text-green-700">
+                      <Truck size={16} />
+                      <span>PI Supplier</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="piSupplier"
+                      value={formData.piSupplier}
+                      onChange={handleInputChange}
+                      placeholder="Fornecedor da PI"
+                      className="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2 text-sm font-semibold text-green-700">
+                      <DollarSign size={16} />
+                      <span>PI Original Currency</span>
+                    </label>
+                    <select
+                      name="piOriginalCurrency"
+                      value={formData.piOriginalCurrency}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200"
+                    >
+                      <option value="">Selecione...</option>
+                      <option value="USD">USD - Dólar Americano</option>
+                      <option value="EUR">EUR - Euro</option>
+                      <option value="CNY">CNY - Yuan Chinês</option>
+                      <option value="BRL">BRL - Real Brasileiro</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Linha 3 - Valores PI */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-green-700">PI Original Cost</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="piOriginalCost"
+                      value={formData.piOriginalCost}
+                      onChange={handleInputChange}
+                      placeholder="0.00"
+                      className="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-green-700">PI Observações</label>
+                    <textarea
+                      name="piObs"
+                      value={formData.piObs}
+                      onChange={handleInputChange}
+                      rows={2}
+                      placeholder="Observações da Proforma Invoice..."
+                      className="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Botões de Ação Modernos */}
+          <div className="bg-white shadow-xl rounded-2xl p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+              <div className="flex items-center space-x-4">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isDraft}
+                    onChange={(e) => setIsDraft(e.target.checked)}
+                    className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Salvar como rascunho</span>
+                </label>
+
+                {isDraft && (
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <Users size={16} />
+                    <span>Rascunhos são privados por padrão</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex space-x-4">
+                <Link
+                  href="/ordem-compra"
+                  className="px-6 py-3 border-2 border-gray-300 rounded-xl text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200"
+                >
+                  Cancelar
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={(e) => handleSubmit(e, true)}
+                  className="flex items-center space-x-2 px-6 py-3 border-2 border-orange-300 rounded-xl text-sm font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 transition-all duration-200"
+                >
+                  <Save size={18} />
+                  <span>Salvar Rascunho</span>
+                </button>
+
+                <button
+                  type="submit"
+                  className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl text-sm font-semibold text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  <FileText size={18} />
+                  <span>Criar Ordem de Compra</span>
+                </button>
+              </div>
+            </div>
           </div>
         </form>
       </main>
+
+      {/* Modal de Cadastro de Empresa */}
+      <EmpresaModal
+        isOpen={showEmpresaModal}
+        onSave={handleEmpresaSave}
+        onCancel={handleEmpresaCancel}
+      />
     </div>
   );
 }

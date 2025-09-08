@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    const ordensCompra = await prisma.ordens_compra.findMany({
+    const ordensCompra = await prisma.ordensCompra.findMany({
       include: {
         empresa: true
       },
@@ -21,6 +23,8 @@ export async function GET() {
       { error: 'Erro interno do servidor' },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
@@ -40,7 +44,7 @@ export async function POST(request: NextRequest) {
     const id = `OC-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
 
     // Criar a ordem de compra com o novo schema
-    const ordemCompra = await prisma.ordens_compra.create({
+    const ordemCompra = await prisma.ordensCompra.create({
       data: {
         id,
         empresa_id: parseInt(body.empresaId),
@@ -79,7 +83,7 @@ export async function POST(request: NextRequest) {
         status: body.status || 'Pendente Aprovação',
         usuario_criador_nome: body.usuarioCriadorNome || 'Sistema',
         data_criacao: new Date(),
-        compartilhado_com: body.compartilhadoCom || []
+        compartilhado_com: body.compartilhadoCom ? JSON.stringify(body.compartilhadoCom) : null
       },
       include: {
         empresa: true
@@ -87,7 +91,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Criar entrada no histórico
-    await prisma.ordens_compra_historico.create({
+    await prisma.ordensCompraHistorico.create({
       data: {
         ordem_compra_id: id,
         acao: 'Criada',
@@ -121,5 +125,7 @@ export async function POST(request: NextRequest) {
       { error: 'Erro interno do servidor' },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }

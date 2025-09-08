@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,7 +7,7 @@ export async function GET(request: NextRequest) {
     // Por enquanto, vamos simular diferentes cenários para teste
 
     // Simulação: verificar se há um usuário admin no banco
-    const adminUser = await (prisma as any).usuario.findFirst({
+    const adminUser = await prisma.usuario.findFirst({
       where: {
         OR: [
           { isAdmin: true },
@@ -49,7 +47,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar permissões específicas do usuário
-    const usuarioPermissoes = await (prisma as any).usuarioPermissao.findMany({
+    const usuarioPermissoes = await prisma.usuarioPermissao.findMany({
       where: {
         usuarioId: userId,
         ativo: true,

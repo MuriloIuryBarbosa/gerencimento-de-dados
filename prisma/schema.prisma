@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model Usuario {
@@ -299,6 +299,69 @@ model Transportadora {
 }
 
 // =====================================================
+// NOVAS TABELAS PARA ORDENS DE COMPRA AVANÇADAS
+// =====================================================
+
+model OrdensCompra {
+  id                        String   @id
+  empresa_id                Int
+  uneg                      String
+  familia_codigo            String
+  familia_nome              String?
+  produto_descricao         String?
+  cod_tamanho               String?
+  observacao                String?
+  capacidade_container      String?
+  planejado_compra          Int?
+  etd_target                DateTime?
+  week_etd                  String?
+  transit_time              Int?
+  lead_time                 Int?
+  factory_date              DateTime?
+  week_factory              String?
+  date_of_sale              DateTime?
+  prop_cont                 String?
+  original_total_value      Decimal?
+  cost_in_dollars           Decimal?
+  total_value_dollars_item  Decimal?
+  total_value_dollars_uc    Decimal?
+  total_containers          Int?
+
+  // Campos PI (Proforma Invoice)
+  pi_numero                 String?
+  pi_date                   DateTime?
+  pi_country                String?
+  pi_supplier               String?
+  pi_obs                    String?
+  pi_original_currency      String?
+  pi_original_cost          Decimal?
+
+  // Controle
+  status                    String   @default("Pendente Aprovação")
+  usuario_criador_nome      String
+  data_criacao              DateTime @default(now())
+  compartilhado_com         String?  // JSON string com array de IDs
+
+  empresa                   Empresa @relation(fields: [empresa_id], references: [id])
+  historico                 OrdensCompraHistorico[]
+
+  @@map("ordens_compra_novo")
+}
+
+model OrdensCompraHistorico {
+  id                Int      @id @default(autoincrement())
+  ordem_compra_id   String
+  acao              String   // Criada, Aprovada, Rejeitada, Modificada, etc.
+  usuario_nome      String
+  data_acao         DateTime @default(now())
+  detalhes          String?
+
+  ordemCompra       OrdensCompra @relation(fields: [ordem_compra_id], references: [id])
+
+  @@map("ordens_compra_historico")
+}
+
+// =====================================================
 // MODELOS DE ADMINISTRAÇÃO AVANÇADA
 // =====================================================
 
@@ -306,6 +369,9 @@ model Empresa {
   id          Int      @id @default(autoincrement())
   nome        String   @unique
   cnpj        String?  @unique
+  endereco    String?
+  telefone    String?
+  email       String?
   dominio     String?  @unique // domínio personalizado
   logo        String?
   ativo       Boolean  @default(true)
@@ -315,6 +381,7 @@ model Empresa {
   usuarios    Usuario[]
   permissoes  PermissaoEmpresa[]
   tabelas     TabelaDinamica[]
+  ordensCompra OrdensCompra[]
 
   @@map("empresas")
 }

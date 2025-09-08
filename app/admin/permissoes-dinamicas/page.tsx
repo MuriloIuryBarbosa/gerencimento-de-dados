@@ -55,7 +55,7 @@ export default function GerenciarPermissoesDinamicas() {
     { id: 'proforma', nome: 'Proformas', rota: '/proforma', categoria: 'Planejamento', descricao: 'Gerenciamento de proformas' },
     { id: 'requisicoes', nome: 'Requisições', rota: '/requisicoes', categoria: 'Planejamento', descricao: 'Gerenciamento de requisições' },
     { id: 'conteineres', nome: 'Contêineres', rota: '/conteineres', categoria: 'Planejamento', descricao: 'Gerenciamento de contêineres' },
-    { id: 'follow-up', nome: 'Follow-up', rota: '/follow-up', categoria: 'Planejamento', descricao: 'Acompanhamento logístico' },
+    { id: 'followup', nome: 'Follow-up', rota: '/followup', categoria: 'Planejamento', descricao: 'Acompanhamento logístico' },
 
     // Executivo
     { id: 'executivo-skus', nome: 'SKUs Executivo', rota: '/executivo/skus', categoria: 'Executivo', descricao: 'Gerenciamento executivo de SKUs' },
@@ -84,7 +84,7 @@ export default function GerenciarPermissoesDinamicas() {
     'proforma': ['view', 'create', 'edit', 'delete', 'approve'],
     'requisicoes': ['view', 'create', 'edit', 'delete', 'approve'],
     'conteineres': ['view', 'create', 'edit', 'delete'],
-    'follow-up': ['view', 'edit'],
+    'followup': ['view', 'edit'],
     'executivo-skus': ['view', 'edit'],
     'executivo-precos': ['view', 'edit'],
     'executivo-estoque': ['view', 'edit'],

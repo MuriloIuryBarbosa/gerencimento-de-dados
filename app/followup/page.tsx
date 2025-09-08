@@ -278,7 +278,7 @@ export default function FollowUp() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <Link
-                        href={`/follow-up/${followUp.id}`}
+                        href={`/followup/${followUp.id}`}
                         className="text-purple-600 hover:text-purple-900"
                       >
                         Ver Detalhes

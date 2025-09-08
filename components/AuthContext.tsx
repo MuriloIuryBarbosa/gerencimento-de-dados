@@ -48,9 +48,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok && data.user) {
         console.log('AuthContext - Login successful, setting user:', data.user);
-        setUser(data.user);
+        // Map to ensure correct format
+        const mappedUser: User = {
+          id: data.user.id,
+          nome: data.user.nome || data.user.name,
+          email: data.user.email,
+          cargo: data.user.cargo || data.user.role,
+          isAdmin: data.user.isAdmin !== undefined ? data.user.isAdmin : (data.user.role === 'admin'),
+          isSuperAdmin: data.user.isSuperAdmin !== undefined ? data.user.isSuperAdmin : false,
+          permissoes: data.user.permissoes || []
+        };
+        setUser(mappedUser);
         // Salvar no localStorage para persistência
-        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('user', JSON.stringify(mappedUser));
         return { success: true };
       } else {
         console.log('AuthContext - Login failed:', data.error);
@@ -79,7 +89,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
+        // Map old format to new format if necessary
+        const mappedUser: User = {
+          id: parsedUser.id,
+          nome: parsedUser.nome || parsedUser.name,
+          email: parsedUser.email,
+          cargo: parsedUser.cargo || parsedUser.role,
+          isAdmin: parsedUser.isAdmin !== undefined ? parsedUser.isAdmin : (parsedUser.role === 'admin'),
+          isSuperAdmin: parsedUser.isSuperAdmin !== undefined ? parsedUser.isSuperAdmin : false,
+          permissoes: parsedUser.permissoes || []
+        };
+        setUser(mappedUser);
       } else {
         // Não há usuário armazenado, manter como não autenticado
         setUser(null);

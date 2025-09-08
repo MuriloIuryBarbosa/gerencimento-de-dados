@@ -37,6 +37,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
     },
     {
       name: t("registration"),
+      href: "/cadastro",
       icon: Package,
       description: "Módulos de cadastro",
       submodules: [
@@ -75,11 +76,18 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
           href: "/cadastro/transportadoras",
           icon: Truck,
           description: "Gerenciar transportadoras"
+        },
+        {
+          name: "Empresas",
+          href: "/cadastro/empresas",
+          icon: Home,
+          description: "Gerenciar empresas do sistema"
         }
       ]
     },
     {
       name: t("executive"),
+      href: "/executivo",
       icon: Layers,
       description: "Módulos executivos",
       submodules: [
@@ -110,7 +118,36 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       ]
     },
     {
+      name: "Cubagem",
+      href: "/cubagem",
+      icon: Package,
+      description: "Módulos de cubagem e volume",
+      submodules: [
+        {
+          name: "Simulador de Cubagem",
+          href: "/cubagem/simulador",
+          icon: Package,
+          description: "Simular cubagem de produtos"
+        }
+      ]
+    },
+    {
+      name: "Financeiro",
+      href: "/financeiro",
+      icon: DollarSign,
+      description: "Módulos financeiros",
+      submodules: [
+        {
+          name: "Gestão de Boletos",
+          href: "/financeiro/boletos",
+          icon: FileText,
+          description: "Gerenciar boletos e pagamentos"
+        }
+      ]
+    },
+    {
       name: t("planning"),
+      href: "/planejamento",
       icon: BarChart3,
       description: "Módulos de planejamento",
       submodules: [
@@ -140,7 +177,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
         },
         {
           name: t("followUp"),
-          href: "/follow-up",
+          href: "/followup",
           icon: Truck,
           description: "Acompanhar logística"
         }
@@ -149,6 +186,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
     // Módulo de Administração - apenas para usuários com permissão
     ...(canAccessAdmin ? [{
       name: "Administração",
+      href: "/admin",
       icon: Shield,
       description: "Painel administrativo do sistema",
       submodules: [
@@ -298,30 +336,44 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
               // Module with submodules
               return (
                 <li key={module.name}>
-                  <button
-                    onClick={() => toggleModule(module.name)}
-                    className={`flex items-center w-full px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors group ${
-                      isOpen ? 'justify-between' : 'justify-center'
-                    }`}
-                    title={isOpen ? '' : module.description}
-                  >
-                    <div className="flex items-center">
-                      <Icon size={20} className="text-gray-300 group-hover:text-white" />
+                  <div className="flex flex-col">
+                    {/* Module header - clickable */}
+                    <Link
+                      href={module.href}
+                      className={`flex items-center px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors group ${
+                        isOpen ? 'justify-between' : 'justify-center'
+                      }`}
+                      title={isOpen ? '' : module.description}
+                    >
+                      <div className="flex items-center">
+                        <Icon size={20} className="text-gray-300 group-hover:text-white" />
+                        {isOpen && (
+                          <span className="ml-3 text-gray-300 group-hover:text-white">
+                            {module.name}
+                          </span>
+                        )}
+                      </div>
                       {isOpen && (
-                        <span className="ml-3 text-gray-300 group-hover:text-white">
-                          {module.name}
-                        </span>
+                        <ChevronRight
+                          size={16}
+                          className={`text-gray-400 transition-transform ${
+                            expandedModules.includes(module.name) ? 'rotate-90' : ''
+                          }`}
+                        />
                       )}
-                    </div>
+                    </Link>
+
+                    {/* Toggle button for submodules */}
                     {isOpen && (
-                      <ChevronRight
-                        size={16}
-                        className={`text-gray-400 transition-transform ${
-                          expandedModules.includes(module.name) ? 'rotate-90' : ''
-                        }`}
-                      />
+                      <button
+                        onClick={() => toggleModule(module.name)}
+                        className="ml-8 mt-1 px-2 py-1 text-xs text-gray-400 hover:text-white transition-colors opacity-60 hover:opacity-100"
+                        title="Expandir/Recolher sub-módulos"
+                      >
+                        {expandedModules.includes(module.name) ? '▼' : '▶'}
+                      </button>
                     )}
-                  </button>
+                  </div>
 
                   {/* Submodules */}
                   {isOpen && expandedModules.includes(module.name) && (
