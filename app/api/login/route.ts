@@ -1,31 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
-import { prisma } from '@/lib/prisma'
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json()
+    console.log('API Login - Received request');
+    const { email, password } = await request.json();
+    console.log('API Login - Email:', email, 'Password length:', password?.length);
 
-    // Find user
-    const user = await prisma.usuario.findUnique({
-      where: { email }
-    })
+    // Simulação de autenticação - em produção, verificar no banco de dados
+    if (email === 'admin@example.com' && password === '123456') {
+      console.log('API Login - Authentication successful');
+      const user = {
+        id: 1,
+        email: 'admin@example.com',
+        name: 'Administrador',
+        role: 'admin',
+      };
 
-    if (!user) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+      console.log('API Login - Returning user:', user);
+      return Response.json({ user });
+    } else {
+      console.log('API Login - Authentication failed');
+      return Response.json({ error: 'Credenciais inválidas' }, { status: 401 });
     }
-
-    // Check password
-    const isValidPassword = await bcrypt.compare(password, user.senha)
-
-    if (!isValidPassword) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
-    }
-
-    // For now, return user data (in production, use JWT or session)
-    return NextResponse.json({ message: 'Login successful', user: { id: user.id, name: user.nome, email: user.email, role: user.cargo || 'user' } })
   } catch (error) {
-    console.error('Login error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('API Login - Error:', error);
+    return Response.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

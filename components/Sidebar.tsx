@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Home, Settings, BarChart3, Package, Truck, FileText, ShoppingCart, ClipboardList, Palette, DollarSign, Archive, Layers, LogOut, Shield } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home, Settings, BarChart3, Package, Truck, FileText, ShoppingCart, ClipboardList, Palette, DollarSign, Archive, Layers, LogOut, Shield, User, Crown, ShieldCheck } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
 import { useUserPermissions } from "./useUserPermissions";
+import { useUsuarioAtual } from "./useUsuarioAtual";
+import { useAuth } from "./AuthContext";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -14,6 +16,8 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
   const { t } = useLanguage();
   const { canAccessAdmin, loading: permissionsLoading } = useUserPermissions();
+  const { usuario, loading: userLoading, papel, cargo } = useUsuarioAtual();
+  const { logout } = useAuth();
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
 
   const toggleModule = (moduleName: string) => {
@@ -30,74 +34,6 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       href: "/",
       icon: Home,
       description: "Dashboard geral do sistema"
-    },
-    {
-      name: t("planning"),
-      icon: BarChart3,
-      description: "Módulos de planejamento",
-      submodules: [
-        {
-          name: t("orders"),
-          href: "/ordem-compra",
-          icon: ShoppingCart,
-          description: "Gerenciar ordens de compra"
-        },
-        {
-          name: t("proformas"),
-          href: "/proforma",
-          icon: FileText,
-          description: "Gerenciar proformas"
-        },
-        {
-          name: t("requisitions"),
-          href: "/requisicoes",
-          icon: ClipboardList,
-          description: "Gerenciar requisições"
-        },
-        {
-          name: t("containers"),
-          href: "/conteineres",
-          icon: Package,
-          description: "Gerenciar conteineres"
-        },
-        {
-          name: t("followUp"),
-          href: "/follow-up",
-          icon: Truck,
-          description: "Acompanhar logística"
-        }
-      ]
-    },
-    {
-      name: t("executive"),
-      icon: Layers,
-      description: "Módulos executivos",
-      submodules: [
-        {
-          name: t("skus"),
-          href: "/executivo/skus",
-          icon: Package,
-          description: "Gerenciar SKUs"
-        },
-        {
-          name: t("prices"),
-          href: "/executivo/precos",
-          icon: DollarSign,
-          description: "Controlar preços"
-        },
-        {
-          name: t("stock"),
-          href: "/executivo/estoque",
-          icon: Archive,
-          description: "Gerenciar estoque"
-        },
-        {
-          name: t("colors"),
-          href: "/executivo/cores",
-          icon: Palette,
-          description: "Gerenciar cores"
-        }
-      ]
     },
     {
       name: t("registration"),
@@ -142,6 +78,74 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
         }
       ]
     },
+    {
+      name: t("executive"),
+      icon: Layers,
+      description: "Módulos executivos",
+      submodules: [
+        {
+          name: t("skus"),
+          href: "/executivo/skus",
+          icon: Package,
+          description: "Gerenciar SKUs"
+        },
+        {
+          name: t("prices"),
+          href: "/executivo/precos",
+          icon: DollarSign,
+          description: "Controlar preços"
+        },
+        {
+          name: t("stock"),
+          href: "/executivo/estoque",
+          icon: Archive,
+          description: "Gerenciar estoque"
+        },
+        {
+          name: t("colors"),
+          href: "/executivo/cores",
+          icon: Palette,
+          description: "Gerenciar cores"
+        }
+      ]
+    },
+    {
+      name: t("planning"),
+      icon: BarChart3,
+      description: "Módulos de planejamento",
+      submodules: [
+        {
+          name: t("orders"),
+          href: "/ordem-compra",
+          icon: ShoppingCart,
+          description: "Gerenciar ordens de compra"
+        },
+        {
+          name: t("proformas"),
+          href: "/proforma",
+          icon: FileText,
+          description: "Gerenciar proformas"
+        },
+        {
+          name: t("requisitions"),
+          href: "/requisicoes",
+          icon: ClipboardList,
+          description: "Gerenciar requisições"
+        },
+        {
+          name: t("containers"),
+          href: "/conteineres",
+          icon: Package,
+          description: "Gerenciar conteineres"
+        },
+        {
+          name: t("followUp"),
+          href: "/follow-up",
+          icon: Truck,
+          description: "Acompanhar logística"
+        }
+      ]
+    },
     // Módulo de Administração - apenas para usuários com permissão
     ...(canAccessAdmin ? [{
       name: "Administração",
@@ -150,7 +154,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       submodules: [
         {
           name: "Dashboard Admin",
-          href: "/admin",
+          href: "/admin/dashboard",
           icon: BarChart3,
           description: "Dashboard administrativo"
         },
@@ -165,6 +169,18 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
           href: "/admin/permissoes",
           icon: Shield,
           description: "Controlar permissões de acesso"
+        },
+        {
+          name: "Permissões Dinâmicas",
+          href: "/admin/permissoes-dinamicas",
+          icon: ShieldCheck,
+          description: "Atribuir permissões por página"
+        },
+        {
+          name: "Logs do Sistema",
+          href: "/admin/logs",
+          icon: FileText,
+          description: "Visualizar logs de auditoria"
         },
         {
           name: "Tabelas Dinâmicas",
@@ -206,7 +222,73 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
         >
           {isOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
         </button>
-      </div>      {/* Menu Items */}
+      </div>
+
+      {/* User Info Section */}
+      {isOpen && (
+        <div className="px-4 py-3 border-b border-gray-700 bg-gray-750">
+          {userLoading ? (
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gray-600 rounded-full animate-pulse"></div>
+              <div className="flex-1">
+                <div className="h-3 bg-gray-600 rounded animate-pulse mb-1"></div>
+                <div className="h-2 bg-gray-600 rounded animate-pulse"></div>
+              </div>
+            </div>
+          ) : usuario ? (
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                  <User size={16} className="text-white" />
+                </div>
+                {usuario.isSuperAdmin && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <Crown size={10} className="text-white" />
+                  </div>
+                )}
+                {usuario.isAdmin && !usuario.isSuperAdmin && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                    <ShieldCheck size={10} className="text-white" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-white truncate">
+                  {usuario.nome}
+                </div>
+                <div className="text-xs text-gray-400 truncate">
+                  {cargo}
+                </div>
+                <div className="text-xs text-gray-500 truncate">
+                  {papel}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                <User size={16} className="text-gray-400" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm text-gray-400">Usuário não identificado</div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Profile Link */}
+      {isOpen && usuario && (
+        <div className="px-4 py-2 border-b border-gray-700">
+          <Link
+            href="/perfil"
+            className="flex items-center space-x-2 text-sm text-gray-300 hover:text-white transition-colors"
+          >
+            <User size={14} />
+            <span>Ver Perfil Completo</span>
+          </Link>
+        </div>
+      )}      {/* Menu Items */}
       <nav className="mt-8">
         <ul className="space-y-2 px-2">
           {menuModules.map((module) => {
@@ -293,11 +375,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       {/* Logout Button */}
       <div className="absolute bottom-16 left-2 right-2">
         <button
-          onClick={() => {
-            // TODO: Implement logout logic
-            alert('Logout realizado com sucesso!');
-            window.location.href = '/login';
-          }}
+          onClick={logout}
           className={`flex items-center w-full px-4 py-3 rounded-lg hover:bg-red-700 transition-colors group ${
             isOpen ? 'justify-start' : 'justify-center'
           }`}

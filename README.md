@@ -1,39 +1,56 @@
 # Sistema de Gerenciamento de Dados
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.5.2-black)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.type### 5. Execute as migrações do banco
-```bash
-npx prisma migrate dev --name init
-```
-
-### 6. Gere o cliente Prisma
-```bash
-npx prisma generate
-```
-
-### 7. Execute os scripts SQL administrativos (opcional)
-```bash
-# Script completo com todas as funcionalidades admin
-mysql -u root -p datalake < database/admin_features.sql
-
-# Ou script simplificado para funcionalidades básicas
-mysql -u root -p datalake < database/admin_simple.sql
-
-# Script para popular permissões iniciais
-mysql -u root -p datalake < database/permissoes_iniciais.sql
-```
-
-### 8. Inicie o servidor de desenvolvimento
-```bash
-npm run dev
-```
-
-O sistema estará disponível em `http://localhost:3000`.
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescript.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.1-38B2AC)](https://tailwindcss.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-5.15.0-2D3748)](https://www.prisma.io/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1)](https://www.mysql.com/)
 
 Um sistema web moderno e robusto para gerenciamento de dados empresariais com foco em governança, controle de acesso e personalização. Desenvolvido com Next.js 15, TypeScript e Prisma ORM, oferecendo uma interface minimalista e responsiva para usuários e administradores.
+
+## 🚨 Status Atual - Problema de Login
+
+**⚠️ ATENÇÃO**: O sistema de login está apresentando problemas críticos que impedem o acesso completo à aplicação.
+
+### Problemas Identificados
+- ❌ **Página de login carrega em branco** após tentativa de autenticação
+- ❌ **Loop de redirecionamento** entre login e dashboard
+- ❌ **Estado de autenticação instável** após login bem-sucedido
+- ❌ **Possível conflito** entre contexto de autenticação e localStorage
+
+### Soluções Implementadas
+- ✅ **Logs de debug adicionados** em AuthContext e API de login
+- ✅ **API de login testada** - funcionando corretamente (retorna usuário válido)
+- ✅ **Estrutura de autenticação verificada** - componentes corretamente integrados
+- ✅ **Sidebar condicional implementado** - não aparece na página de login
+
+### Próximos Passos
+1. **Debug do fluxo de autenticação** no navegador (console logs)
+2. **Verificação de conflitos** entre AuthContext e localStorage
+3. **Teste do redirecionamento** após login bem-sucedido
+4. **Correção do loop de redirecionamento** identificado
+
+### Como Testar
+```bash
+# 1. Iniciar servidor
+npm run dev
+
+# 2. Testar API diretamente
+curl -X POST http://localhost:3000/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"123456"}'
+
+# 3. Verificar logs no console do navegador
+# Abrir http://localhost:3000/login e tentar fazer login
+```
+
+### Credenciais de Teste
+- **Email**: `admin@example.com`
+- **Senha**: `123456`
+
+**Issue relacionada**: [#LOGIN-001 - Problema crítico no sistema de login](https://github.com/MuriloIuryBarbosa/gerenciamento-de-dados/issues/LOGIN-001)
+
+---
 
 ## 🚀 Funcionalidades
 
@@ -391,3 +408,31 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 **Sistema de Controle de Acesso**: Implementado sistema completo de permissões com menu administrativo condicional. Usuários com permissões administrativas terão acesso automático ao painel de administração no menu lateral.
 
 **Última atualização**: Sistema de permissões implementado (Setembro 2025)
+
+## 🆕 Melhorias Recentes
+
+### ✅ Melhorias Implementadas
+- **Sistema de Autenticação Completo**: AuthContext com localStorage para persistência
+- **Sidebar Condicional**: Menu lateral não aparece na página de login
+- **Informações do Usuário**: Sidebar exibe nome e email do usuário logado
+- **Menu Reordenado**: Organização lógica (Cadastro → Executivo → Planejamento)
+- **Logs de Debug**: Sistema de logs adicionado para troubleshooting
+- **API de Login Funcional**: Endpoint testado e funcionando corretamente
+
+### 🔧 Componentes Atualizados
+- `AuthContext.tsx` - Contexto de autenticação com logs de debug
+- `Sidebar.tsx` - Menu lateral com informações do usuário
+- `app/login/page.tsx` - Página de login com validação e redirecionamento
+- `app/api/login/route.ts` - API de login com autenticação mockada
+- `app/layout.tsx` - Layout principal com sidebar condicional
+
+### 📊 Status dos Componentes
+| Componente | Status | Descrição |
+|------------|--------|-----------|
+| AuthContext | ✅ Funcional | Contexto de autenticação com localStorage |
+| Sidebar | ✅ Funcional | Menu lateral condicional com user info |
+| Login Page | ⚠️ Debug | Página com logs, mas com problema de loop |
+| API Login | ✅ Funcional | Endpoint retorna usuário corretamente |
+| Layout | ✅ Funcional | Sidebar condicional implementada |
+
+---

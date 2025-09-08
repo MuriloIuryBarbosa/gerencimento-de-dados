@@ -1,12 +1,14 @@
 "use client";
 
 import { useLanguage } from "../components/LanguageContext";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 export default function Home() {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -210,5 +212,6 @@ export default function Home() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   );
 }

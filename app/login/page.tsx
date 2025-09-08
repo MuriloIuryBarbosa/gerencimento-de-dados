@@ -1,37 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "../../components/LanguageContext";
+import { useAuth } from "../../components/AuthContext";
+import { useNotification } from "../../components/Notification";
 
 export default function Login() {
   const { t } = useLanguage();
+  const { login, isAuthenticated } = useAuth();
+  const { showNotification } = useNotification();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Redirecionar se já estiver autenticado
+  useEffect(() => {
+    console.log('Login page - isAuthenticated:', isAuthenticated);
+    if (isAuthenticated) {
+      console.log('Login page - Redirecionando para dashboard');
+      router.push('/');
+    }
+  }, [isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Login form submitted with:', { email, password });
+    setIsLoading(true);
+
     try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      console.log('Calling login function...');
+      const result = await login(email, password);
+      console.log('Login result:', result);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        alert('Login realizado com sucesso!');
-        // Redirect to dashboard
-        window.location.href = '/dashboard';
+      if (result.success) {
+        console.log('Login successful, showing notification and redirecting');
+        showNotification('success', 'Login realizado com sucesso!');
+        router.push('/');
       } else {
-        alert(data.error || 'Erro no login');
+        console.log('Login failed:', result.error);
+        showNotification('error', result.error || 'Erro no login');
       }
     } catch (error) {
-      console.error('Error:', error);
-      alert('Erro interno');
+      console.error('Login error:', error);
+      showNotification('error', 'Erro interno do servidor');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -60,8 +76,19 @@ export default function Login() {
               required
             />
           </div>
-          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
-            {t('enter')}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+          >
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Entrando...
+              </>
+            ) : (
+              t('enter')
+            )}
           </button>
         </form>
         <p className="mt-4 text-center">
