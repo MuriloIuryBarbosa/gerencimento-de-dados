@@ -73,7 +73,7 @@ export default function NovaOrdemCompra() {
     const fetchData = async () => {
       try {
         // Buscar empresas da API
-        const empresasResponse = await fetch('/api/empresas-novo');
+        const empresasResponse = await fetch('/api/empresas');
         if (empresasResponse.ok) {
           const empresasData = await empresasResponse.json();
           if (empresasData.success) {

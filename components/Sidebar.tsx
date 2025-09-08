@@ -220,16 +220,16 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
           description: "Gerenciar ordens de compra"
         },
         {
-          name: t("proformas"),
-          href: "/proforma",
-          icon: FileText,
-          description: "Gerenciar proformas"
-        },
-        {
           name: t("requisitions"),
           href: "/requisicoes",
           icon: ClipboardList,
           description: "Gerenciar requisições"
+        },
+        {
+          name: "Proformas Control",
+          href: "/proforma",
+          icon: FileText,
+          description: "Gerenciar proformas"
         },
         {
           name: t("containers"),
