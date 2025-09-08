@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useLanguage } from "../../components/LanguageContext";
+import { useUserPermissions } from "../../components/useUserPermissions";
 
 interface Usuario {
   id: number;
@@ -16,6 +17,7 @@ interface Usuario {
 
 export default function AdminDashboard() {
   const { t } = useLanguage();
+  const { isSuperAdmin, loading: permissionsLoading } = useUserPermissions();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -24,6 +26,7 @@ export default function AdminDashboard() {
     totalTabelas: 0,
     totalPermissoes: 0
   });
+  const [dbSetupLoading, setDbSetupLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -51,7 +54,38 @@ export default function AdminDashboard() {
     fetchData();
   }, []);
 
-  if (loading) {
+  const handleDatabaseSetup = async () => {
+    if (!confirm('Tem certeza que deseja recriar todas as tabelas do banco de dados? Isso pode apagar dados existentes.')) {
+      return;
+    }
+
+    setDbSetupLoading(true);
+    try {
+      const response = await fetch('/api/admin/database-setup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert('Banco de dados configurado com sucesso!');
+        // Recarregar estatísticas
+        fetchData();
+      } else {
+        const error = await response.json();
+        alert(`Erro: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Erro:', error);
+      alert('Erro ao configurar banco de dados');
+    } finally {
+      setDbSetupLoading(false);
+    }
+  };
+
+  if (loading || permissionsLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -333,6 +367,36 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
+
+          {/* Gerenciamento de Banco de Dados - Apenas Super Admin */}
+          {isSuperAdmin && (
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-medium text-gray-900">Banco de Dados</h3>
+                    <p className="text-sm text-gray-500">Gerenciamento e configuração do banco</p>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <button
+                    onClick={handleDatabaseSetup}
+                    disabled={dbSetupLoading}
+                    className="text-red-600 hover:text-red-500 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {dbSetupLoading ? 'Configurando...' : 'Configurar Banco de Dados →'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Usuários Recentes */}
