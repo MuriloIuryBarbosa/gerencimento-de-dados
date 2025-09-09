@@ -5,12 +5,13 @@ const prisma = new PrismaClient();
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await params;
+    const idNum = parseInt(id);
 
-    if (isNaN(id)) {
+    if (isNaN(idNum)) {
       return NextResponse.json(
         { error: 'ID inválido' },
         { status: 400 }
@@ -19,7 +20,7 @@ export async function DELETE(
 
     // Verificar se a permissão existe
     const usuarioPermissao = await (prisma as any).usuarioPermissao.findUnique({
-      where: { id }
+      where: { id: idNum }
     });
 
     if (!usuarioPermissao) {
@@ -31,7 +32,7 @@ export async function DELETE(
 
     // Revogar a permissão (desativar)
     await (prisma as any).usuarioPermissao.update({
-      where: { id },
+      where: { id: idNum },
       data: {
         ativo: false
       }
