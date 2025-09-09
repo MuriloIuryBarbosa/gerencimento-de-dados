@@ -169,7 +169,7 @@ export default function NovaOrdemCompra() {
     // Preencher campos automaticamente
     setFormData(prev => ({
       ...prev,
-      produtoDescricao: sku.nome,
+      produtoDescricao: sku.descricao && sku.descricao !== sku.nome ? sku.descricao : sku.nome,
       uneg: sku.id.substring(0, 6), // Extrair UNEG do ID do SKU
       familiaCodigo: sku.categoria || '',
       familiaNome: sku.categoria || ''
