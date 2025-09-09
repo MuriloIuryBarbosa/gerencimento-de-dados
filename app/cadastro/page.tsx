@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useLanguage } from "../../components/LanguageContext";
-import { Package, Palette, Truck, Home, ShoppingCart, Truck as TruckIcon, Building2, BarChart3, AlertTriangle, CheckCircle, Database, Users, TrendingUp, XCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Package, Palette, Truck, Home, ShoppingCart, Truck as TruckIcon, Building2, BarChart3, AlertTriangle, CheckCircle, Database, Users, TrendingUp, XCircle, RefreshCw, Plus } from 'lucide-react';
 
 interface EstatisticasQualidade {
   totalTabelas: number;
@@ -29,12 +30,14 @@ interface EstatisticasQualidade {
 }
 
 export default function Cadastro() {
-  const { t } = useLanguage();
   const [estatisticas, setEstatisticas] = useState<EstatisticasQualidade | null>(null);
+  const [empresas, setEmpresas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingEmpresas, setLoadingEmpresas] = useState(true);
 
   useEffect(() => {
     fetchQualidadeData();
+    fetchEmpresas();
   }, []);
 
   const fetchQualidadeData = async () => {
@@ -58,6 +61,22 @@ export default function Cadastro() {
       setEstatisticas(getFallbackData());
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchEmpresas = async () => {
+    try {
+      const response = await fetch('/api/empresas');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setEmpresas(result.data);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao buscar empresas:', error);
+    } finally {
+      setLoadingEmpresas(false);
     }
   };
 
@@ -152,15 +171,15 @@ export default function Cadastro() {
 
   const modulos = [
     {
-      nome: t('skus'),
+      nome: 'SKUs',
       href: '/cadastro/skus',
-      descricao: 'Gerenciar SKUs do sistema',
+      descricao: 'Gerenciar códigos de produtos (SKUs)',
       icone: Package,
       cor: 'from-blue-500 to-blue-600',
       stats: estatisticas?.detalhesPorTabela.find(t => t.nome === 'SKUs') || { total: 0, completos: 0, incompletos: 0 }
     },
     {
-      nome: t('colors'),
+      nome: 'Cores',
       href: '/cadastro/cores',
       descricao: 'Gerenciar cores disponíveis',
       icone: Palette,
@@ -168,31 +187,31 @@ export default function Cadastro() {
       stats: estatisticas?.detalhesPorTabela.find(t => t.nome === 'Cores') || { total: 0, completos: 0, incompletos: 0 }
     },
     {
-      nome: t('representatives'),
+      nome: 'Representantes',
       href: '/cadastro/representantes',
-      descricao: 'Gerenciar representantes',
+      descricao: 'Gerenciar representantes comerciais',
       icone: Truck,
       cor: 'from-green-500 to-green-600',
       stats: estatisticas?.detalhesPorTabela.find(t => t.nome === 'Representantes') || { total: 0, completos: 0, incompletos: 0 }
     },
     {
-      nome: t('clients'),
+      nome: 'Clientes',
       href: '/cadastro/clientes',
-      descricao: 'Gerenciar clientes',
+      descricao: 'Gerenciar clientes da empresa',
       icone: Home,
       cor: 'from-orange-500 to-orange-600',
       stats: estatisticas?.detalhesPorTabela.find(t => t.nome === 'Clientes') || { total: 0, completos: 0, incompletos: 0 }
     },
     {
-      nome: t('suppliers'),
+      nome: 'Fornecedores',
       href: '/cadastro/fornecedores',
-      descricao: 'Gerenciar fornecedores',
+      descricao: 'Gerenciar fornecedores de produtos',
       icone: ShoppingCart,
       cor: 'from-red-500 to-red-600',
       stats: estatisticas?.detalhesPorTabela.find(t => t.nome === 'Fornecedores') || { total: 0, completos: 0, incompletos: 0 }
     },
     {
-      nome: t('carriers'),
+      nome: 'Transportadoras',
       href: '/cadastro/transportadoras',
       descricao: 'Gerenciar transportadoras',
       icone: TruckIcon,
@@ -231,7 +250,7 @@ export default function Cadastro() {
                 <Database size={32} className="text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white">{t('registration')}</h1>
+                <h1 className="text-3xl font-bold text-white">Módulo de Cadastros</h1>
                 <p className="mt-1 text-blue-100">
                   Dashboard de cadastros com métricas de qualidade de dados
                 </p>
@@ -435,6 +454,118 @@ export default function Cadastro() {
               );
             })}
           </div>
+        </div>
+
+        {/* Empresas Cadastradas */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Empresas Cadastradas</h2>
+            <Link href="/cadastro/empresas">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Building2 size={16} />
+                Ver Todas
+              </Button>
+            </Link>
+          </div>
+
+          {loadingEmpresas ? (
+            <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+              <RefreshCw className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-4" />
+              <p className="text-gray-600">Carregando empresas...</p>
+            </div>
+          ) : empresas.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+              <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg mb-4">Nenhuma empresa cadastrada</p>
+              <Link href="/cadastro/empresas/novo">
+                <Button className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Cadastrar Primeira Empresa
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {empresas.slice(0, 6).map((empresa) => (
+                <div key={empresa.id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+                  <div className="bg-gradient-to-r from-teal-500 to-teal-600 p-4 text-white">
+                    <div className="flex items-center gap-3">
+                      <Building2 size={20} />
+                      <div>
+                        <h3 className="font-bold text-lg">{empresa.nome}</h3>
+                        <p className="text-teal-100 text-sm">{empresa.cnpj}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4">
+                    <div className="space-y-2 text-sm">
+                      {empresa.endereco && (
+                        <div className="flex items-start gap-2">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                          <span className="text-gray-600">{empresa.endereco}</span>
+                        </div>
+                      )}
+                      {empresa.cidade && empresa.estado && (
+                        <div className="flex items-start gap-2">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                          <span className="text-gray-600">{empresa.cidade}, {empresa.estado}</span>
+                        </div>
+                      )}
+                      {empresa.telefone && (
+                        <div className="flex items-start gap-2">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                          <span className="text-gray-600">Tel: {empresa.telefone}</span>
+                        </div>
+                      )}
+                      {empresa.email && (
+                        <div className="flex items-start gap-2">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                          <span className="text-gray-600">{empresa.email}</span>
+                        </div>
+                      )}
+                      {empresa.contato && (
+                        <div className="flex items-start gap-2">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                          <span className="text-gray-600">Contato: {empresa.contato}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          empresa.ativo
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {empresa.ativo ? 'Ativa' : 'Inativa'}
+                        </div>
+                        <Link href={`/cadastro/empresas/${empresa.id}`}>
+                          <Button variant="outline" size="sm">
+                            Ver Detalhes
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {empresas.length > 6 && (
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl shadow-lg p-8 text-center border-2 border-dashed border-gray-300">
+                  <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 text-lg mb-2">+{empresas.length - 6} empresas</p>
+                  <p className="text-gray-400 text-sm mb-4">mais empresas cadastradas</p>
+                  <Link href="/cadastro/empresas">
+                    <Button variant="outline">
+                      Ver Todas as Empresas
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Ações Rápidas */}

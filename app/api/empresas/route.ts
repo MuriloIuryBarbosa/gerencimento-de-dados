@@ -23,7 +23,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { nome, cnpj, endereco, telefone, email } = body;
+    const { nome, cnpj, endereco, cidade, estado, cep, telefone, email, contato, observacoes } = body;
 
     if (!nome || !cnpj) {
       return NextResponse.json(
@@ -37,8 +37,13 @@ export async function POST(request: NextRequest) {
         nome,
         cnpj,
         endereco: endereco || null,
+        cidade: cidade || null,
+        estado: estado || null,
+        cep: cep || null,
         telefone: telefone || null,
-        email: email || null
+        email: email || null,
+        contato: contato || null,
+        observacoes: observacoes || null
       }
     });
 

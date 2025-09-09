@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./prisma/dev.db"
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model Usuario {
@@ -370,8 +370,13 @@ model Empresa {
   nome        String   @unique
   cnpj        String?  @unique
   endereco    String?
+  cidade      String?
+  estado      String?
+  cep         String?
   telefone    String?
   email       String?
+  contato     String?
+  observacoes String?
   dominio     String?  @unique // domínio personalizado
   logo        String?
   ativo       Boolean  @default(true)

@@ -156,7 +156,134 @@ O menu de administração será exibido quando o usuário possuir:
 4. **Rate Limiting**: Implementar limite de tentativas para endpoints sensíveis
 5. **Testes Automatizados**: Criar suíte completa de testes para o sistema de permissões
 
-## 🏗️ Estrutura do Projeto
+## 🗄️ Migração para MySQL
+
+### Status Atual: SQLite → MySQL
+
+O projeto foi **configurado para usar MySQL** ao invés de SQLite. A migração já foi parcialmente implementada:
+
+#### ✅ Configurações Realizadas
+- **Schema Prisma**: Atualizado para MySQL (`provider = "mysql"`)
+- **Variáveis de Ambiente**: `.env` configurado com URL MySQL
+- **Dependências**: `mysql2` já instalado no `package.json`
+- **Scripts de Setup**: Criados arquivos `mysql-setup.md` e `migrate-to-mysql.bat`
+
+#### 🔄 Próximos Passos para Migração Completa
+
+##### 1. Instalar MySQL
+Escolha uma das opções:
+
+**Opção A - Docker (Recomendado):**
+```bash
+docker run --name mysql-datalake -e MYSQL_ROOT_PASSWORD=password -e MYSQL_DATABASE=datalake -p 3306:3306 -d mysql:8.0
+```
+
+**Opção B - Instalador Oficial:**
+1. Baixe: https://dev.mysql.com/downloads/mysql/
+2. Instale e configure senha como `password`
+3. Crie banco `datalake`
+
+**Opção C - XAMPP:**
+1. Baixe XAMPP: https://www.apachefriends.org/
+2. Instale e inicie MySQL via painel de controle
+
+##### 2. Executar Migração
+Após instalar MySQL, execute o script automático:
+
+```bash
+# Windows
+.\migrate-to-mysql.bat
+
+# Linux/Mac
+chmod +x migrate-to-mysql.sh
+./migrate-to-mysql.sh
+```
+
+Ou execute manualmente:
+```bash
+# 1. Criar banco
+mysql -u root -ppassword -e "CREATE DATABASE IF NOT EXISTS datalake;"
+
+# 2. Gerar cliente Prisma
+npx prisma generate
+
+# 3. Criar migrações
+npx prisma migrate dev --name init_mysql
+
+# 4. Aplicar schema
+npx prisma db push
+
+# 5. Verificar tabelas
+mysql -u root -ppassword datalake -e "SHOW TABLES;"
+```
+
+##### 3. Testar Aplicação
+```bash
+npm run dev
+```
+
+#### 📋 Configurações do MySQL
+
+**Arquivo `.env`:**
+```env
+DATABASE_URL="mysql://root:password@localhost:3306/datalake"
+```
+
+**Credenciais Padrão:**
+- **Host**: `localhost`
+- **Porta**: `3306`
+- **Usuário**: `root`
+- **Senha**: `password`
+- **Banco**: `datalake`
+
+#### 🛠️ Comandos Úteis
+
+```bash
+# Verificar conexão
+mysql -u root -ppassword -e "SELECT VERSION();"
+
+# Listar bancos
+mysql -u root -ppassword -e "SHOW DATABASES;"
+
+# Listar tabelas
+mysql -u root -ppassword datalake -e "SHOW TABLES;"
+
+# Backup
+mysqldump -u root -ppassword datalake > backup.sql
+
+# Restore
+mysql -u root -ppassword datalake < backup.sql
+```
+
+#### ⚠️ Importante
+- **Senha**: Configure como `password` ou ajuste no `.env`
+- **Porta**: Certifique-se de que a porta 3306 não está bloqueada
+- **Firewall**: Permita conexões na porta 3306 se necessário
+- **Charset**: O banco será criado com `utf8mb4` para suporte Unicode completo
+
+#### 🔍 Troubleshooting MySQL
+
+**Erro: "Access denied"**
+```bash
+# Reset senha root
+mysql -u root
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'password';
+FLUSH PRIVILEGES;
+```
+
+**Erro: "Port already in use"**
+```bash
+# Verificar processos na porta 3306
+netstat -ano | findstr :3306
+# Ou no Linux: lsof -i :3306
+```
+
+**Erro: "Can't connect to MySQL server"**
+- Verifique se MySQL está rodando
+- Confirme host e porta no `.env`
+- Teste conexão: `mysql -u root -ppassword -h localhost -P 3306`
+
+---
 
 ```
 gerenciamento-de-dados/

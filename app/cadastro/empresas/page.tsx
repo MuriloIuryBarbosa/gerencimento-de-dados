@@ -1,260 +1,193 @@
 "use client";
 
-import { useState } from 'react';
+import Link from "next/link";
+import { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Save, X } from 'lucide-react';
+import { Building2, Plus, Search, Edit, Eye } from 'lucide-react';
 
-export default function CadastroEmpresas() {
-  const [formData, setFormData] = useState({
-    nome: '',
-    cnpj: '',
-    endereco: '',
-    cidade: '',
-    estado: '',
-    cep: '',
-    telefone: '',
-    email: '',
-    contato: '',
-    observacoes: ''
-  });
+interface Empresa {
+  id: number;
+  nome: string;
+  cnpj: string;
+  endereco: string | null;
+  cidade: string | null;
+  estado: string | null;
+  telefone: string | null;
+  email: string | null;
+  contato: string | null;
+  createdAt: string;
+}
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+export default function Empresas() {
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Implementar lógica de salvamento
-    console.log('Dados da empresa:', formData);
-  };
+  useEffect(() => {
+    const fetchEmpresas = async () => {
+      try {
+        const response = await fetch('/api/empresas');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setEmpresas(data.data);
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao buscar empresas:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleCancel = () => {
-    setFormData({
-      nome: '',
-      cnpj: '',
-      endereco: '',
-      cidade: '',
-      estado: '',
-      cep: '',
-      telefone: '',
-      email: '',
-      contato: '',
-      observacoes: ''
-    });
-  };
+    fetchEmpresas();
+  }, []);
+
+  const filteredEmpresas = empresas.filter(empresa =>
+    empresa.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    empresa.cnpj.includes(searchTerm) ||
+    empresa.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    empresa.cidade?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando empresas...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl">
-              <Building2 className="h-8 w-8 text-white" />
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl">
+                <Building2 className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Empresas</h1>
+                <p className="text-gray-600">Gerencie o cadastro de empresas fornecedoras</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Cadastro de Empresas</h1>
-              <p className="text-gray-600">Gerencie o cadastro de empresas fornecedoras</p>
+            <div className="flex gap-4">
+              <Link href="/cadastro/empresas/novo">
+                <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Empresa
+                </Button>
+              </Link>
+              <Link href="/cadastro">
+                <Button variant="outline">
+                  ← Voltar
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* Form */}
-        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5" />
-              Dados da Empresa
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Nome da Empresa */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="nome" className="text-sm font-medium text-gray-700">
-                    Nome da Empresa *
-                  </Label>
-                  <Input
-                    id="nome"
-                    type="text"
-                    value={formData.nome}
-                    onChange={(e) => handleInputChange('nome', e.target.value)}
-                    placeholder="Digite o nome da empresa"
-                    className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    required
-                  />
+        {/* Search */}
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              type="text"
+              placeholder="Buscar empresas por nome, CNPJ, e-mail ou cidade..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        {/* Empresas List */}
+        <div className="bg-white shadow-xl border-0 rounded-xl overflow-hidden">
+          {filteredEmpresas.length === 0 ? (
+            <div className="text-center py-12">
+              <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">
+                {searchTerm ? 'Nenhuma empresa encontrada' : 'Nenhuma empresa cadastrada'}
+              </p>
+              <p className="text-gray-400 text-sm mt-2">
+                {searchTerm ? 'Tente ajustar os termos da busca' : 'Comece cadastrando uma nova empresa'}
+              </p>
+              {!searchTerm && (
+                <Link href="/cadastro/empresas/novo">
+                  <Button className="mt-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Cadastrar Primeira Empresa
+                  </Button>
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {filteredEmpresas.map((empresa) => (
+                <div key={empresa.id} className="p-6 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-start gap-4">
+                        <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
+                          <Building2 className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-900">{empresa.nome}</h3>
+                          <p className="text-sm text-gray-600 mb-2">CNPJ: {empresa.cnpj}</p>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
+                            <div>
+                              <span className="font-medium">Endereço:</span> {empresa.endereco || 'Não informado'}
+                            </div>
+                            <div>
+                              <span className="font-medium">Cidade/Estado:</span> {empresa.cidade ? `${empresa.cidade}/${empresa.estado}` : 'Não informado'}
+                            </div>
+                            <div>
+                              <span className="font-medium">Telefone:</span> {empresa.telefone || 'Não informado'}
+                            </div>
+                            <div>
+                              <span className="font-medium">E-mail:</span> {empresa.email || 'Não informado'}
+                            </div>
+                          </div>
+
+                          {empresa.contato && (
+                            <div className="mt-2 text-sm text-gray-500">
+                              <span className="font-medium">Contato:</span> {empresa.contato}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 ml-4">
+                      <Link href={`/cadastro/empresas/${empresa.id}`}>
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver
+                        </Button>
+                      </Link>
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4 mr-1" />
+                        Editar
+                      </Button>
+                    </div>
+                  </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="cnpj" className="text-sm font-medium text-gray-700">
-                    CNPJ *
-                  </Label>
-                  <Input
-                    id="cnpj"
-                    type="text"
-                    value={formData.cnpj}
-                    onChange={(e) => handleInputChange('cnpj', e.target.value)}
-                    placeholder="00.000.000/0000-00"
-                    className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Endereço */}
-              <div className="space-y-2">
-                <Label htmlFor="endereco" className="text-sm font-medium text-gray-700">
-                  Endereço *
-                </Label>
-                <Input
-                  id="endereco"
-                  type="text"
-                  value={formData.endereco}
-                  onChange={(e) => handleInputChange('endereco', e.target.value)}
-                  placeholder="Digite o endereço completo"
-                  className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-
-              {/* Cidade, Estado, CEP */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="cidade" className="text-sm font-medium text-gray-700">
-                    Cidade *
-                  </Label>
-                  <Input
-                    id="cidade"
-                    type="text"
-                    value={formData.cidade}
-                    onChange={(e) => handleInputChange('cidade', e.target.value)}
-                    placeholder="Digite a cidade"
-                    className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="estado" className="text-sm font-medium text-gray-700">
-                    Estado *
-                  </Label>
-                  <Input
-                    id="estado"
-                    type="text"
-                    value={formData.estado}
-                    onChange={(e) => handleInputChange('estado', e.target.value)}
-                    placeholder="UF"
-                    className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="cep" className="text-sm font-medium text-gray-700">
-                    CEP
-                  </Label>
-                  <Input
-                    id="cep"
-                    type="text"
-                    value={formData.cep}
-                    onChange={(e) => handleInputChange('cep', e.target.value)}
-                    placeholder="00000-000"
-                    className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              {/* Contato */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="telefone" className="text-sm font-medium text-gray-700">
-                    Telefone
-                  </Label>
-                  <Input
-                    id="telefone"
-                    type="tel"
-                    value={formData.telefone}
-                    onChange={(e) => handleInputChange('telefone', e.target.value)}
-                    placeholder="(00) 00000-0000"
-                    className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                    E-mail
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="empresa@email.com"
-                    className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              {/* Contato Principal */}
-              <div className="space-y-2">
-                <Label htmlFor="contato" className="text-sm font-medium text-gray-700">
-                  Contato Principal
-                </Label>
-                <Input
-                  id="contato"
-                  type="text"
-                  value={formData.contato}
-                  onChange={(e) => handleInputChange('contato', e.target.value)}
-                  placeholder="Nome do contato principal"
-                  className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-
-              {/* Observações */}
-              <div className="space-y-2">
-                <Label htmlFor="observacoes" className="text-sm font-medium text-gray-700">
-                  Observações
-                </Label>
-                <Textarea
-                  id="observacoes"
-                  value={formData.observacoes}
-                  onChange={(e) => handleInputChange('observacoes', e.target.value)}
-                  placeholder="Observações adicionais sobre a empresa"
-                  className="min-h-24 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  rows={4}
-                />
-              </div>
-
-              {/* Buttons */}
-              <div className="flex justify-end gap-4 pt-6 border-t">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCancel}
-                  className="h-12 px-8 border-gray-300 hover:bg-gray-50"
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  className="h-12 px-8 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Salvar Empresa
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+        {/* Summary */}
+        <div className="mt-6 text-center text-gray-500">
+          <p>{filteredEmpresas.length} empresa{filteredEmpresas.length !== 1 ? 's' : ''} encontrada{filteredEmpresas.length !== 1 ? 's' : ''}</p>
+        </div>
       </div>
     </div>
   );

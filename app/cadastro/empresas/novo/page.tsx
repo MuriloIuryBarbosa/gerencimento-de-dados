@@ -1,10 +1,13 @@
- import { useState } from 'react';
+'use client';
+
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, Save, X, Search } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface CadastroEmpresaProps {
   onSave?: (empresa: any) => void;
@@ -13,6 +16,7 @@ interface CadastroEmpresaProps {
 }
 
 export default function CadastroEmpresaNovo({ onSave, onCancel, isModal = false }: CadastroEmpresaProps) {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     nome: '',
     cnpj: '',
@@ -27,6 +31,8 @@ export default function CadastroEmpresaNovo({ onSave, onCancel, isModal = false 
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -66,30 +72,58 @@ export default function CadastroEmpresaNovo({ onSave, onCancel, isModal = false 
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
 
-    // TODO: Implementar lógica de salvamento
-    console.log('Salvando empresa:', formData);
-
-    if (onSave) {
-      onSave(formData);
-    }
-
-    if (!isModal) {
-      // Reset form if not modal
-      setFormData({
-        nome: '',
-        cnpj: '',
-        endereco: '',
-        cidade: '',
-        estado: '',
-        cep: '',
-        telefone: '',
-        email: '',
-        contato: '',
-        observacoes: ''
+    try {
+      const response = await fetch('/api/empresas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao salvar empresa');
+      }
+
+      setSuccess('Empresa cadastrada com sucesso!');
+
+      if (onSave) {
+        onSave(data.data);
+      }
+
+      if (!isModal) {
+        // Reset form if not modal
+        setFormData({
+          nome: '',
+          cnpj: '',
+          endereco: '',
+          cidade: '',
+          estado: '',
+          cep: '',
+          telefone: '',
+          email: '',
+          contato: '',
+          observacoes: ''
+        });
+
+        // Redirect to empresas list after a short delay
+        setTimeout(() => {
+          router.push('/cadastro/empresas');
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Erro ao salvar empresa:', error);
+      setError(error instanceof Error ? error.message : 'Erro ao salvar empresa');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -295,10 +329,20 @@ export default function CadastroEmpresaNovo({ onSave, onCancel, isModal = false 
         </Button>
         <Button
           type="submit"
-          className="h-12 px-8 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+          disabled={isLoading}
+          className="h-12 px-8 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Save className="h-4 w-4 mr-2" />
-          Salvar Empresa
+          {isLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Salvando...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4 mr-2" />
+              Salvar Empresa
+            </>
+          )}
         </Button>
       </div>
     </form>
@@ -350,6 +394,18 @@ export default function CadastroEmpresaNovo({ onSave, onCancel, isModal = false 
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+
+            {success && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-600 text-sm">{success}</p>
+              </div>
+            )}
+
             {formContent}
           </CardContent>
         </Card>

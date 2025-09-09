@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useLanguage } from "../../../components/LanguageContext";
+import { Upload } from 'lucide-react';
 
 interface Cliente {
   id: number;
@@ -75,6 +76,13 @@ export default function Clientes() {
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 + {t('newClient')}
+              </Link>
+              <Link
+                href="/cadastro/clientes/upload"
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Upload CSV
               </Link>
             </nav>
           </div>

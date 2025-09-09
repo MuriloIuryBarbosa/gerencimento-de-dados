@@ -1,0 +1,41 @@
+# Script de Migração para MySQL
+# Execute este script após instalar o MySQL
+
+echo "=== CONFIGURAÇÃO DO MYSQL ==="
+echo "1. Instale o MySQL (veja opções abaixo)"
+echo "2. Execute os comandos SQL abaixo no MySQL Workbench ou terminal:"
+echo ""
+
+echo "=== COMANDOS SQL PARA EXECUTAR ==="
+echo "CREATE DATABASE IF NOT EXISTS datalake CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+echo "CREATE USER IF NOT EXISTS 'root'@'localhost' IDENTIFIED BY 'password';"
+echo "GRANT ALL PRIVILEGES ON datalake.* TO 'root'@'localhost';"
+echo "FLUSH PRIVILEGES;"
+echo ""
+
+echo "=== TESTE DE CONEXÃO ==="
+echo "mysql -u root -ppassword -e 'USE datalake; SHOW TABLES;'"
+echo ""
+
+echo "=== PRÓXIMOS PASSOS ==="
+echo "1. Após configurar MySQL, execute: npx prisma generate"
+echo "2. Execute: npx prisma migrate dev --name init_mysql"
+echo "3. Execute: npx prisma db push"
+echo "4. Teste a aplicação: npm run dev"
+echo ""
+
+echo "=== OPÇÕES DE INSTALAÇÃO DO MYSQL ==="
+echo ""
+echo "OPÇÃO 1 - Docker (Mais fácil):"
+echo "docker run --name mysql-datalake -e MYSQL_ROOT_PASSWORD=password -e MYSQL_DATABASE=datalake -p 3306:3306 -d mysql:8.0"
+echo ""
+echo "OPÇÃO 2 - Instalador Oficial:"
+echo "1. Baixe: https://dev.mysql.com/downloads/mysql/"
+echo "2. Execute o instalador"
+echo "3. Configure senha como 'password'"
+echo "4. Crie banco 'datalake'"
+echo ""
+echo "OPÇÃO 3 - XAMPP:"
+echo "1. Baixe XAMPP: https://www.apachefriends.org/"
+echo "2. Instale e inicie MySQL"
+echo "3. Use phpMyAdmin para criar banco 'datalake'"
