@@ -10,11 +10,11 @@ export async function GET(request: NextRequest) {
     const skus = await prisma.sKU.findMany({
       where: {
         ativo: true,
-        OR: [
-          { nome: { contains: search, mode: 'insensitive' } },
-          { id: { contains: search, mode: 'insensitive' } },
-          { descricao: { contains: search, mode: 'insensitive' } }
-        ]
+        OR: search ? [
+          { nome: { contains: search } },
+          { id: { contains: search } },
+          { descricao: { contains: search } }
+        ] : undefined
       },
       select: {
         id: true,

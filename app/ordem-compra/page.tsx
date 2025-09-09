@@ -22,25 +22,29 @@ const metricas = [
     titulo: "Total de Ordens",
     valor: "24",
     cor: "bg-blue-500",
-    icone: "📋"
+    icone: "📋",
+    descricao: "Todas as ordens no sistema"
   },
   {
     titulo: "Pendentes Aprovação",
     valor: "8",
     cor: "bg-yellow-500",
-    icone: "⏳"
+    icone: "⏳",
+    descricao: "OCs aguardando aprovação"
   },
   {
     titulo: "Pendentes Informações",
     valor: "3",
     cor: "bg-orange-500",
-    icone: "📝"
+    icone: "📝",
+    descricao: "OCs em rascunho"
   },
   {
     titulo: "Prazo Estourado",
     valor: "2",
     cor: "bg-red-500",
-    icone: "⚠️"
+    icone: "⚠️",
+    descricao: "OCs com prazo vencido"
   }
 ];
 
@@ -116,23 +120,26 @@ export default function OrdemCompra() {
         <div className="mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             {metricas.map((metrica, index) => (
-              <div key={index} className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className={`w-12 h-12 ${metrica.cor} rounded-lg flex items-center justify-center text-2xl`}>
-                        {metrica.icone}
+              <div key={index} className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center mb-3">
+                        <div className={`w-12 h-12 ${metrica.cor} rounded-xl flex items-center justify-center text-2xl shadow-lg`}>
+                          {metrica.icone}
+                        </div>
+                        <div className="ml-4">
+                          <dt className="text-sm font-medium text-gray-500 truncate">
+                            {metrica.titulo}
+                          </dt>
+                          <dd className="text-3xl font-bold text-gray-900 mt-1">
+                            {metrica.valor}
+                          </dd>
+                        </div>
                       </div>
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          {metrica.titulo}
-                        </dt>
-                        <dd className="text-3xl font-semibold text-gray-900">
-                          {metrica.valor}
-                        </dd>
-                      </dl>
+                      <p className="text-xs text-gray-600 mt-2">
+                        {metrica.descricao}
+                      </p>
                     </div>
                   </div>
                 </div>

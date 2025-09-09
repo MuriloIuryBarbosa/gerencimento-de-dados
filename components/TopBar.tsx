@@ -99,7 +99,7 @@ export default function TopBar() {
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex items-center space-x-4">
+    <div className="fixed top-0 right-0 z-40 flex items-center space-x-4 p-4 bg-white/80 backdrop-blur-sm border-b border-gray-200 shadow-sm">
       {/* Seletor de Idioma com Bandeiras - Design Criativo */}
       <div className="relative group">
         <div className="flex items-center bg-white rounded-full shadow-lg border border-gray-200 p-1 relative overflow-hidden">
@@ -180,12 +180,12 @@ export default function TopBar() {
           <>
             {/* Overlay para fechar com fade */}
             <div
-              className="fixed inset-0 z-40 bg-black bg-opacity-10 backdrop-blur-sm"
+              className="fixed inset-0 z-30 bg-black bg-opacity-10 backdrop-blur-sm"
               onClick={() => setShowNotifications(false)}
             />
 
             {/* Dropdown */}
-            <div className="absolute right-0 top-14 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 max-h-96 overflow-hidden transform transition-all duration-300 ease-out">
+            <div className="absolute right-0 top-16 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-40 max-h-96 overflow-hidden transform transition-all duration-300 ease-out">
               {/* Header com gradiente */}
               <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 text-white rounded-t-xl">
                 <div className="flex items-center justify-between">

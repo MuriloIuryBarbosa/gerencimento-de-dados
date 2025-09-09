@@ -64,25 +64,22 @@ const metricas = [
     titulo: "Total de Requisições",
     valor: "32",
     cor: "bg-indigo-500",
-    icone: "📋"
+    icone: "📋",
+    descricao: "Documentos aguardando aprovação"
   },
   {
-    titulo: "Aguardando Aprovação",
+    titulo: "OC Pendente",
     valor: "12",
     cor: "bg-yellow-500",
-    icone: "⏳"
+    icone: "⏳",
+    descricao: "Ordens de compra pendentes"
   },
   {
-    titulo: "Pendente Proforma",
+    titulo: "PO Pendente",
     valor: "8",
     cor: "bg-orange-500",
-    icone: "📄"
-  },
-  {
-    titulo: "Aprovadas",
-    valor: "10",
-    cor: "bg-green-500",
-    icone: "✅"
+    icone: "📄",
+    descricao: "Proformas aguardando dados"
   }
 ];
 
@@ -141,25 +138,28 @@ export default function Requisicoes() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {/* Métricas */}
         <div className="mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             {metricas.map((metrica, index) => (
-              <div key={index} className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className={`w-12 h-12 ${metrica.cor} rounded-lg flex items-center justify-center text-2xl`}>
-                        {metrica.icone}
+              <div key={index} className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center mb-3">
+                        <div className={`w-12 h-12 ${metrica.cor} rounded-xl flex items-center justify-center text-2xl shadow-lg`}>
+                          {metrica.icone}
+                        </div>
+                        <div className="ml-4">
+                          <dt className="text-sm font-medium text-gray-500 truncate">
+                            {metrica.titulo}
+                          </dt>
+                          <dd className="text-3xl font-bold text-gray-900 mt-1">
+                            {metrica.valor}
+                          </dd>
+                        </div>
                       </div>
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          {metrica.titulo}
-                        </dt>
-                        <dd className="text-3xl font-semibold text-gray-900">
-                          {metrica.valor}
-                        </dd>
-                      </dl>
+                      <p className="text-xs text-gray-600 mt-2">
+                        {metrica.descricao}
+                      </p>
                     </div>
                   </div>
                 </div>

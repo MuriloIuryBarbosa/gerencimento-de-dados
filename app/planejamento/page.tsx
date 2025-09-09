@@ -52,7 +52,7 @@ export default function Planejamento() {
 
   // Estatísticas gerais do módulo planejamento
   const estatisticasGerais = {
-    ordensPendentes: 23,
+    ordensPendentes: 23 + 5, // OCs pendentes de aprovação (23) + OCs com prazo estourado (5)
     containersSemana: 12,
     entregasAtrasadas: 17,
     eficienciaLogistica: 88.5,
