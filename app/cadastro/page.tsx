@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Package, Palette, Truck, Home, ShoppingCart, Truck as TruckIcon, Building2, BarChart3, AlertTriangle, CheckCircle, Database, Users, TrendingUp, XCircle, RefreshCw, Plus } from 'lucide-react';
+import { Package, Palette, Truck, Home, ShoppingCart, Truck as TruckIcon, Building2, BarChart3, AlertTriangle, CheckCircle, Database, Users, TrendingUp, TrendingDown, XCircle, RefreshCw, Plus } from 'lucide-react';
 
 interface EstatisticasQualidade {
   totalTabelas: number;
@@ -27,6 +27,12 @@ interface EstatisticasQualidade {
     descricao: string;
     itens: string[];
   }>;
+  evolucao?: {
+    qualidade: number;
+    registros: number;
+    status: string;
+    ultimoCalculo: string;
+  };
   skusRevisao?: {
     totalPendente: number;
     criadosSistema: number;
@@ -347,8 +353,28 @@ export default function Cadastro() {
                   <TrendingUp className="h-8 w-8 text-green-500" />
                 </div>
                 <div className="mt-4 flex items-center text-sm">
-                  <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                  <span className="text-green-600">+2.1% vs mês anterior</span>
+                  {estatisticas.evolucao ? (
+                    <>
+                      {estatisticas.evolucao.status === 'melhoria' ? (
+                        <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                      ) : estatisticas.evolucao.status === 'retrocesso' ? (
+                        <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4 text-gray-500 mr-1" />
+                      )}
+                      <span className={`${
+                        estatisticas.evolucao.status === 'melhoria' ? 'text-green-600' :
+                        estatisticas.evolucao.status === 'retrocesso' ? 'text-red-600' : 'text-gray-600'
+                      }`}>
+                        {estatisticas.evolucao.qualidade > 0 ? '+' : ''}{estatisticas.evolucao.qualidade}% vs último cálculo
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 text-gray-500 mr-1" />
+                      <span className="text-gray-600">Primeiro cálculo</span>
+                    </>
+                  )}
                 </div>
               </div>
 

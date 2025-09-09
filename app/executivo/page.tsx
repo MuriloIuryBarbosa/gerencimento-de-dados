@@ -2,10 +2,64 @@
 
 import Link from "next/link";
 import { useLanguage } from "../../components/LanguageContext";
-import { Package, DollarSign, Archive, Palette, BarChart3, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { useEffect, useState } from "react";
+import { Package, DollarSign, Archive, Palette, BarChart3, TrendingUp, AlertTriangle, CheckCircle, Target } from 'lucide-react';
+
+interface ExecutivoData {
+  estatisticasGerais: {
+    totalProdutos: number;
+    produtosAtivos: number;
+    margemMedia: number;
+    estoqueTotal: number;
+    produtosBaixoEstoque: number;
+    precosDesatualizados: number;
+  };
+  modulos: {
+    skus: { total: number; ativos: number; inativos: number };
+    cores: { total: number; ativas: number; descontinuadas: number };
+    precos: { total: number; atualizados: number; pendentes: number };
+    estoque: { total: number; disponivel: number; reservado: number };
+  };
+  alertas: {
+    produtosBaixoEstoque: number;
+    precosDesatualizados: number;
+  };
+}
 
 export default function Executivo() {
   const { t } = useLanguage();
+  const [executivoData, setExecutivoData] = useState<ExecutivoData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchExecutivoData = async () => {
+      try {
+        const response = await fetch('/api/executivo');
+        if (response.ok) {
+          const data = await response.json();
+          setExecutivoData(data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados do executivo:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExecutivoData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando dados executivos...</p>
+        </div>
+      </div>
+    );
+  }
 
   const modulos = [
     {
@@ -14,7 +68,8 @@ export default function Executivo() {
       descricao: 'Gerenciar SKUs do sistema',
       icone: Package,
       cor: 'from-blue-500 to-blue-600',
-      stats: { total: 1250, ativos: 1180, inativos: 70 }
+      stats: executivoData?.modulos.skus || { total: 0, ativos: 0, inativos: 0 },
+      labels: { positive: 'Ativos', negative: 'Inativos' }
     },
     {
       nome: t('prices'),
@@ -22,7 +77,8 @@ export default function Executivo() {
       descricao: 'Controlar preços e margens',
       icone: DollarSign,
       cor: 'from-green-500 to-green-600',
-      stats: { total: 890, atualizados: 756, pendentes: 134 }
+      stats: executivoData?.modulos.precos || { total: 0, atualizados: 0, pendentes: 0 },
+      labels: { positive: 'Atualizados', negative: 'Pendentes' }
     },
     {
       nome: t('stock'),
@@ -30,7 +86,8 @@ export default function Executivo() {
       descricao: 'Gerenciar controle de estoque',
       icone: Archive,
       cor: 'from-orange-500 to-orange-600',
-      stats: { total: 2340, disponivel: 1890, reservado: 450 }
+      stats: executivoData?.modulos.estoque || { total: 0, disponivel: 0, reservado: 0 },
+      labels: { positive: 'Disponível', negative: 'Reservado' }
     },
     {
       nome: t('colors'),
@@ -38,22 +95,33 @@ export default function Executivo() {
       descricao: 'Gerenciar paleta de cores',
       icone: Palette,
       cor: 'from-purple-500 to-purple-600',
-      stats: { total: 156, ativas: 142, descontinuadas: 14 }
+      stats: executivoData?.modulos.cores || { total: 0, ativas: 0, descontinuadas: 0 },
+      labels: { positive: 'Ativas', negative: 'Descontinuadas' }
+    },
+    {
+      nome: 'Metas',
+      href: '/executivo/metas',
+      descricao: 'Gerenciar metas de compra e venda',
+      icone: Target,
+      cor: 'from-red-500 to-red-600',
+      stats: { total: 0, ativas: 0, pendentes: 0 },
+      labels: { positive: 'Ativas', negative: 'Pendentes' }
     }
   ];
 
   // Estatísticas gerais do módulo executivo
-  const estatisticasGerais = {
-    totalProdutos: 1250,
-    produtosAtivos: 1180,
-    margemMedia: 35.2,
-    estoqueTotal: 2340,
-    produtosBaixoEstoque: 45,
-    precosDesatualizados: 134
+  const estatisticasGerais = executivoData?.estatisticasGerais || {
+    totalProdutos: 0,
+    produtosAtivos: 0,
+    margemMedia: 0,
+    estoqueTotal: 0,
+    produtosBaixoEstoque: 0,
+    precosDesatualizados: 0
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -194,28 +262,28 @@ export default function Executivo() {
                   </div>
 
                   <div className="p-6">
-                    <div className="grid grid-cols-3 gap-4 text-center">
                       <div>
                         <p className="text-2xl font-bold text-gray-900">{modulo.stats.total}</p>
                         <p className="text-sm text-gray-600">Total</p>
                       </div>
                       <div>
-                        <p className="text-2xl font-bold text-green-600">{modulo.stats.ativos || modulo.stats.atualizados || modulo.stats.disponivel || modulo.stats.ativas}</p>
-                        <p className="text-sm text-gray-600">
-                          {modulo.stats.ativos ? 'Ativos' :
-                           modulo.stats.atualizados ? 'Atualizados' :
-                           modulo.stats.disponivel ? 'Disponível' : 'Ativas'}
+                        <p className="text-2xl font-bold text-green-600">
+                          {(modulo.stats as any).ativos ||
+                           (modulo.stats as any).atualizados ||
+                           (modulo.stats as any).disponivel ||
+                           (modulo.stats as any).ativas || 0}
                         </p>
+                        <p className="text-sm text-gray-600">{modulo.labels.positive}</p>
                       </div>
                       <div>
-                        <p className="text-2xl font-bold text-orange-600">{modulo.stats.inativos || modulo.stats.pendentes || modulo.stats.reservado || modulo.stats.descontinuadas}</p>
-                        <p className="text-sm text-gray-600">
-                          {modulo.stats.inativos ? 'Inativos' :
-                           modulo.stats.pendentes ? 'Pendentes' :
-                           modulo.stats.reservado ? 'Reservado' : 'Descontinuadas'}
+                        <p className="text-2xl font-bold text-orange-600">
+                          {(modulo.stats as any).inativos ||
+                           (modulo.stats as any).pendentes ||
+                           (modulo.stats as any).reservado ||
+                           (modulo.stats as any).descontinuadas || 0}
                         </p>
+                        <p className="text-sm text-gray-600">{modulo.labels.negative}</p>
                       </div>
-                    </div>
                   </div>
                 </Link>
               );
@@ -224,5 +292,6 @@ export default function Executivo() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   );
 }

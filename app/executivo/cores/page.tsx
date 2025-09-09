@@ -1,110 +1,69 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { Search, Filter, Eye } from 'lucide-react';
 
-// Dados mockados para cores
-const mockCores = [
-  {
-    id: "COR-001",
-    nome: "Branco Neve",
-    codigoHex: "#FFFFFF",
-    codigoRgb: "255, 255, 255",
-    categoria: "Neutros",
-    skusRelacionados: ["SKU-2025-001", "SKU-2025-005"],
-    estoqueTotal: 2850,
-    valorTotal: 142500.00,
-    status: "Ativo",
-    dataCadastro: "2025-01-15",
-    fornecedor: "Fornecedor A",
-    descricao: "Branco puro, ideal para bases"
-  },
-  {
-    id: "COR-002",
-    nome: "Azul Marinho",
-    codigoHex: "#000080",
-    codigoRgb: "0, 0, 128",
-    categoria: "Azuis",
-    skusRelacionados: ["SKU-2025-002", "SKU-2025-006"],
-    estoqueTotal: 1920,
-    valorTotal: 89600.00,
-    status: "Ativo",
-    dataCadastro: "2025-01-12",
-    fornecedor: "Fornecedor B",
-    descricao: "Azul escuro clássico"
-  },
-  {
-    id: "COR-003",
-    nome: "Vermelho Cereja",
-    codigoHex: "#DC143C",
-    codigoRgb: "220, 20, 60",
-    categoria: "Vermelhos",
-    skusRelacionados: ["SKU-2025-004"],
-    estoqueTotal: 0,
-    valorTotal: 0.00,
-    status: "Fora de Estoque",
-    dataCadastro: "2025-01-08",
-    fornecedor: "Fornecedor D",
-    descricao: "Vermelho vibrante e intenso"
-  },
-  {
-    id: "COR-004",
-    nome: "Verde Esmeralda",
-    codigoHex: "#008B8B",
-    codigoRgb: "0, 139, 139",
-    categoria: "Verdes",
-    skusRelacionados: ["SKU-2025-007"],
-    estoqueTotal: 450,
-    valorTotal: 22500.00,
-    status: "Baixo Estoque",
-    dataCadastro: "2025-01-10",
-    fornecedor: "Fornecedor C",
-    descricao: "Verde elegante e sofisticado"
-  },
-  {
-    id: "COR-005",
-    nome: "Amarelo Sol",
-    codigoHex: "#FFD700",
-    codigoRgb: "255, 215, 0",
-    categoria: "Amarelos",
-    skusRelacionados: ["SKU-2025-008"],
-    estoqueTotal: 1200,
-    valorTotal: 48000.00,
-    status: "Ativo",
-    dataCadastro: "2025-01-14",
-    fornecedor: "Fornecedor E",
-    descricao: "Amarelo dourado vibrante"
-  },
-  {
-    id: "COR-006",
-    nome: "Rosa Pêssego",
-    codigoHex: "#FFB6C1",
-    codigoRgb: "255, 182, 193",
-    categoria: "Rosas",
-    skusRelacionados: ["SKU-2025-009"],
-    estoqueTotal: 780,
-    valorTotal: 31200.00,
-    status: "Ativo",
-    dataCadastro: "2025-01-13",
-    fornecedor: "Fornecedor F",
-    descricao: "Rosa suave e delicado"
-  }
-];
+interface Cor {
+  id: string;
+  nome: string;
+  codigoHex: string;
+  codigoRgb: string;
+  categoria: string;
+  skusRelacionados: string[];
+  estoqueTotal: number;
+  valorTotal: number;
+  status: string;
+  dataCadastro: string;
+  fornecedor: string;
+  descricao: string;
+}
 
-const categorias = ["Neutros", "Azuis", "Vermelhos", "Verdes", "Amarelos", "Rosas", "Laranjas", "Roxos", "Pretos"];
+interface CoresData {
+  cores: Cor[];
+  estatisticas: {
+    totalCores: number;
+    coresAtivas: number;
+    coresBaixoEstoque: number;
+    coresForaEstoque: number;
+    totalEstoque: number;
+    valorTotal: number;
+  };
+  categorias: string[];
+}
 
 export default function ControleCores() {
-  const [cores] = useState(mockCores);
+  const [coresData, setCoresData] = useState<CoresData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [filtroCategoria, setFiltroCategoria] = useState("");
   const [busca, setBusca] = useState("");
 
-  const coresFiltradas = cores.filter(cor => {
+  useEffect(() => {
+    const fetchCoresData = async () => {
+      try {
+        const response = await fetch('/api/executivo/cores');
+        if (response.ok) {
+          const data = await response.json();
+          setCoresData(data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados das cores:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCoresData();
+  }, []);
+
+  const coresFiltradas = coresData?.cores.filter((cor: Cor) => {
     const matchCategoria = !filtroCategoria || cor.categoria === filtroCategoria;
     const matchBusca = !busca ||
       cor.nome.toLowerCase().includes(busca.toLowerCase()) ||
       cor.id.toLowerCase().includes(busca.toLowerCase());
     return matchCategoria && matchBusca;
-  });
+  }) || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -134,7 +93,7 @@ export default function ControleCores() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Controle de Cores</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Cores</h1>
               <p className="mt-1 text-sm text-gray-500">
                 Gestão visual e integrada das cores com estoque e SKUs
               </p>
@@ -169,17 +128,11 @@ export default function ControleCores() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
               >
                 <option value="">Todas as categorias</option>
-                {categorias.map(cat => (
+                {coresData?.categorias.map((cat: string) => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
             </div>
-            <Link
-              href="/executivo/cores/nova"
-              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 whitespace-nowrap"
-            >
-              Nova Cor
-            </Link>
           </div>
         </div>
 
@@ -298,7 +251,7 @@ export default function ControleCores() {
               </div>
               <div className="ml-5">
                 <p className="text-sm font-medium text-gray-500">Total de Cores</p>
-                <p className="text-2xl font-semibold text-gray-900">{cores.length}</p>
+                <p className="text-2xl font-semibold text-gray-900">{coresFiltradas.length}</p>
               </div>
             </div>
           </div>
@@ -313,7 +266,7 @@ export default function ControleCores() {
               <div className="ml-5">
                 <p className="text-sm font-medium text-gray-500">Estoque Total</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {cores.reduce((total, cor) => total + cor.estoqueTotal, 0).toLocaleString()}m
+                  {coresFiltradas.reduce((total: number, cor: Cor) => total + cor.estoqueTotal, 0).toLocaleString()}m
                 </p>
               </div>
             </div>
@@ -329,7 +282,7 @@ export default function ControleCores() {
               <div className="ml-5">
                 <p className="text-sm font-medium text-gray-500">Baixo Estoque</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {cores.filter(cor => cor.status === 'Baixo Estoque').length}
+                  {coresFiltradas.filter((cor: Cor) => cor.status === 'Baixo Estoque').length}
                 </p>
               </div>
             </div>
@@ -345,7 +298,7 @@ export default function ControleCores() {
               <div className="ml-5">
                 <p className="text-sm font-medium text-gray-500">Fora de Estoque</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {cores.filter(cor => cor.status === 'Fora de Estoque').length}
+                  {coresFiltradas.filter((cor: Cor) => cor.status === 'Fora de Estoque').length}
                 </p>
               </div>
             </div>
@@ -356,13 +309,13 @@ export default function ControleCores() {
         <div className="mt-8 bg-white shadow rounded-lg p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Paleta por Categoria</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categorias.map(categoria => {
-              const coresCategoria = cores.filter(cor => cor.categoria === categoria);
+            {coresData?.categorias.map((categoria: string) => {
+              const coresCategoria = coresFiltradas.filter((cor: Cor) => cor.categoria === categoria);
               return (
                 <div key={categoria} className="text-center">
                   <h4 className="text-sm font-medium text-gray-900 mb-2">{categoria}</h4>
                   <div className="flex flex-wrap justify-center gap-1 mb-2">
-                    {coresCategoria.slice(0, 4).map(cor => (
+                    {coresCategoria.slice(0, 4).map((cor: Cor) => (
                       <div
                         key={cor.id}
                         className="w-6 h-6 rounded border border-gray-300 cursor-pointer hover:scale-110 transition-transform"
@@ -385,4 +338,24 @@ export default function ControleCores() {
       </main>
     </div>
   );
+}
+
+// Funções auxiliares
+function getStatusColor(status: string): string {
+  switch (status) {
+    case 'Ativo':
+      return 'bg-green-100 text-green-800';
+    case 'Baixo Estoque':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'Fora de Estoque':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+}
+
+function getEstoquePercentual(estoque: number): number {
+  // Considerando que o estoque ideal é 1000 metros
+  const percentual = (estoque / 1000) * 100;
+  return Math.min(percentual, 100);
 }

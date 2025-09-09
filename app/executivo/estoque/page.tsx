@@ -1,78 +1,80 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLanguage } from "@/components/LanguageContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { Package, AlertTriangle, TrendingUp, CheckCircle, XCircle, MapPin, BarChart3 } from 'lucide-react';
 
-// Dados mockados para estoque
-const mockEstoque = [
-  {
-    id: "EST-001",
-    sku: "SKU-2025-001",
-    nomeProduto: "Algodão Premium Branco",
-    categoria: "Tecidos",
-    fornecedor: "Fornecedor A",
-    estoqueAtual: 1250,
-    estoqueMinimo: 500,
-    estoqueMaximo: 2000,
-    unidade: "metros",
-    localizacao: "Depósito A - Prateleira 3",
-    ultimoMovimento: "2025-01-15",
-    status: "Normal",
-    valorUnitario: 45.00,
-    valorTotal: 56250.00
-  },
-  {
-    id: "EST-002",
-    sku: "SKU-2025-002",
-    nomeProduto: "Poliéster Azul Marinho",
-    categoria: "Tecidos",
-    fornecedor: "Fornecedor B",
-    estoqueAtual: 890,
-    estoqueMinimo: 300,
-    estoqueMaximo: 1500,
-    unidade: "metros",
-    localizacao: "Depósito A - Prateleira 5",
-    ultimoMovimento: "2025-01-14",
-    status: "Normal",
-    valorUnitario: 32.00,
-    valorTotal: 28480.00
-  },
-  {
-    id: "EST-003",
-    sku: "SKU-2025-003",
-    nomeProduto: "Linho Natural",
-    categoria: "Tecidos Premium",
-    fornecedor: "Fornecedor C",
-    estoqueAtual: 245,
-    estoqueMinimo: 100,
-    estoqueMaximo: 800,
-    unidade: "metros",
-    localizacao: "Depósito B - Prateleira 2",
-    ultimoMovimento: "2025-01-13",
-    status: "Baixo Estoque",
-    valorUnitario: 85.00,
-    valorTotal: 20825.00
-  },
-  {
-    id: "EST-004",
-    sku: "SKU-2025-004",
-    nomeProduto: "Seda Vermelha",
-    categoria: "Tecidos Premium",
-    fornecedor: "Fornecedor D",
-    estoqueAtual: 0,
-    estoqueMinimo: 50,
-    estoqueMaximo: 300,
-    unidade: "metros",
-    localizacao: "Depósito B - Prateleira 1",
-    ultimoMovimento: "2025-01-10",
-    status: "Fora de Estoque",
-    valorUnitario: 120.00,
-    valorTotal: 0.00
-  }
-];
+interface EstoqueItem {
+  id: string;
+  sku: string;
+  nomeProduto: string;
+  categoria: string;
+  fornecedor: string;
+  estoqueAtual: number;
+  estoqueMinimo: number;
+  estoqueMaximo: number;
+  unidade: string;
+  localizacao: string;
+  ultimoMovimento: string;
+  status: string;
+  valorUnitario: number;
+  valorTotal: number;
+}
+
+interface Deposito {
+  id: number;
+  nome: string;
+  quantidade: number;
+  unidade: string;
+  ocupacaoPercentual: number;
+}
+
+interface Metrics {
+  totalEstoque: number;
+  produtosOK: number;
+  baixoEstoque: number;
+  foraEstoque: number;
+  totalProdutos: number;
+}
 
 export default function ControleEstoque() {
-  const [estoque] = useState(mockEstoque);
+  const { t } = useLanguage();
+  const [metrics, setMetrics] = useState<Metrics>({
+    totalEstoque: 0,
+    produtosOK: 0,
+    baixoEstoque: 0,
+    foraEstoque: 0,
+    totalProdutos: 0
+  });
+  const [itens, setItens] = useState<EstoqueItem[]>([]);
+  const [depositos, setDepositos] = useState<Deposito[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchEstoqueData();
+  }, []);
+
+  const fetchEstoqueData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/estoque/dashboard');
+      if (!response.ok) {
+        throw new Error('Erro ao buscar dados de estoque');
+      }
+      const data = await response.json();
+
+      setMetrics(data.metrics);
+      setItens(data.itens);
+      setDepositos(data.mapaDepositos);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      console.error('Erro ao buscar dados de estoque:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -90,277 +92,293 @@ export default function ControleEstoque() {
   };
 
   const getEstoquePercentual = (atual: number, maximo: number) => {
+    if (maximo === 0) return 0;
     return Math.min((atual / maximo) * 100, 100);
   };
 
-  const getStatusEstoque = (atual: number, minimo: number, maximo: number) => {
-    if (atual === 0) return "Fora de Estoque";
-    if (atual <= minimo) return "Baixo Estoque";
-    if (atual >= maximo) return "Excesso";
-    return "Normal";
-  };
+  const stats = [
+    {
+      title: "Total em Estoque",
+      value: `${metrics.totalEstoque.toLocaleString('pt-BR')}m`,
+      change: "+5.2%",
+      changeType: "positive",
+      icon: Package,
+      color: "from-blue-500 to-blue-600",
+      bgColor: "bg-blue-50"
+    },
+    {
+      title: "Produtos OK",
+      value: metrics.produtosOK.toString(),
+      change: "+2.1%",
+      changeType: "positive",
+      icon: CheckCircle,
+      color: "from-green-500 to-green-600",
+      bgColor: "bg-green-50"
+    },
+    {
+      title: "Baixo Estoque",
+      value: metrics.baixoEstoque.toString(),
+      change: "-1.3%",
+      changeType: "negative",
+      icon: AlertTriangle,
+      color: "from-yellow-500 to-yellow-600",
+      bgColor: "bg-yellow-50"
+    },
+    {
+      title: "Fora de Estoque",
+      value: metrics.foraEstoque.toString(),
+      change: "-0.8%",
+      changeType: "negative",
+      icon: XCircle,
+      color: "from-red-500 to-red-600",
+      bgColor: "bg-red-50"
+    }
+  ];
+
+  if (loading) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Carregando dados de estoque...</p>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  if (error) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <XCircle className="h-12 w-12 text-red-500 mx-auto" />
+            <p className="mt-4 text-red-600">Erro ao carregar dados: {error}</p>
+            <button
+              onClick={fetchEstoqueData}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Tentar Novamente
+            </button>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Controle de Estoque</h1>
-              <p className="mt-1 text-sm text-gray-500">
-                Monitoramento e gestão de inventário
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header com gradiente */}
+        <header className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-8">
+              <div>
+                <h1 className="text-4xl font-bold text-white mb-2">Controle de Estoque</h1>
+                <p className="text-blue-100 text-lg">Monitoramento e gestão de inventário</p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-white">
+                  <div className="flex items-center space-x-2">
+                    <BarChart3 size={24} />
+                    <div>
+                      <p className="text-sm opacity-90">Total de Produtos</p>
+                      <p className="text-2xl font-bold">{metrics.totalProdutos}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
+          {/* Cards de Métricas */}
+          <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((stat, index) => {
+              const IconComponent = stat.icon;
+              return (
+                <div key={index} className={`${stat.bgColor} overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
+                  <div className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
+                        <p className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</p>
+                        <div className="flex items-center">
+                          <span className={`text-sm font-medium ${
+                            stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {stat.change}
+                          </span>
+                          <span className="text-sm text-gray-500 ml-2">vs mês anterior</span>
+                        </div>
+                      </div>
+                      <div className={`p-3 rounded-full bg-gradient-to-r ${stat.color} shadow-lg`}>
+                        <IconComponent size={24} className="text-white" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Tabela de Estoque */}
+          <div className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden mb-8">
+            <div className="px-6 py-5 border-b border-gray-200">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">
+                Inventário de Produtos
+              </h3>
+              <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                Controle detalhado de estoques e localizações
               </p>
             </div>
-          </div>
-        </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* Métricas */}
-        <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-2xl">
-                  📦
-                </div>
-              </div>
-              <div className="ml-5">
-                <p className="text-sm font-medium text-gray-500">Total em Estoque</p>
-                <p className="text-2xl font-semibold text-gray-900">2,385m</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center text-2xl">
-                  ✅
-                </div>
-              </div>
-              <div className="ml-5">
-                <p className="text-sm font-medium text-gray-500">Produtos OK</p>
-                <p className="text-2xl font-semibold text-gray-900">156</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center text-2xl">
-                  ⚠️
-                </div>
-              </div>
-              <div className="ml-5">
-                <p className="text-sm font-medium text-gray-500">Baixo Estoque</p>
-                <p className="text-2xl font-semibold text-gray-900">23</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center text-2xl">
-                  ❌
-                </div>
-              </div>
-              <div className="ml-5">
-                <p className="text-sm font-medium text-gray-500">Fora de Estoque</p>
-                <p className="text-2xl font-semibold text-gray-900">8</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabela de Estoque */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
-          <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Inventário de Produtos
-            </h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
-              Controle detalhado de estoques e localizações
-            </p>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Produto
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estoque Atual
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Localização
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Valor Total
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {estoque.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {item.nomeProduto}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {item.sku} • {item.categoria}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex-1">
-                          <div className="text-sm text-gray-900">
-                            {item.estoqueAtual} {item.unidade}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Mín: {item.estoqueMinimo} • Máx: {item.estoqueMaximo}
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                            <div
-                              className={`h-2 rounded-full ${
-                                getStatusEstoque(item.estoqueAtual, item.estoqueMinimo, item.estoqueMaximo) === 'Fora de Estoque' ? 'bg-red-500' :
-                                getStatusEstoque(item.estoqueAtual, item.estoqueMinimo, item.estoqueMaximo) === 'Baixo Estoque' ? 'bg-yellow-500' :
-                                getStatusEstoque(item.estoqueAtual, item.estoqueMinimo, item.estoqueMaximo) === 'Excesso' ? 'bg-blue-500' : 'bg-green-500'
-                              }`}
-                              style={{ width: `${getEstoquePercentual(item.estoqueAtual, item.estoqueMaximo)}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(getStatusEstoque(item.estoqueAtual, item.estoqueMinimo, item.estoqueMaximo))}`}>
-                        {getStatusEstoque(item.estoqueAtual, item.estoqueMinimo, item.estoqueMaximo)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.localizacao}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                      R$ {item.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button className="text-indigo-600 hover:text-indigo-900">
-                        Movimentar
-                      </button>
-                      <Link
-                        href={`/executivo/estoque/${item.id}`}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        Detalhes
-                      </Link>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Produto
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Estoque Atual
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Localização
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Valor Total
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ações
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Ações Rápidas */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Movimentação</h3>
-            <div className="space-y-3">
-              <button className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-                ➕ Entrada de Material
-              </button>
-              <button className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-                ➖ Saída de Material
-              </button>
-              <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                🔄 Transferência
-              </button>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {itens.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {item.nomeProduto}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {item.sku} • {item.categoria}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex-1">
+                            <div className="text-sm text-gray-900">
+                              {item.estoqueAtual} {item.unidade}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Mín: {item.estoqueMinimo} • Máx: {item.estoqueMaximo}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                              <div
+                                className={`h-2 rounded-full ${
+                                  item.status === 'Fora de Estoque' ? 'bg-red-500' :
+                                  item.status === 'Baixo Estoque' ? 'bg-yellow-500' :
+                                  item.status === 'Excesso' ? 'bg-blue-500' : 'bg-green-500'
+                                }`}
+                                style={{ width: `${getEstoquePercentual(item.estoqueAtual, item.estoqueMaximo)}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(item.status)}`}>
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex items-center">
+                          <MapPin className="h-4 w-4 mr-1" />
+                          {item.localizacao}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                        R$ {item.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                        <button className="text-indigo-600 hover:text-indigo-900 transition-colors">
+                          Movimentar
+                        </button>
+                        <button className="text-blue-600 hover:text-blue-900 transition-colors">
+                          Detalhes
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Relatórios</h3>
-            <div className="space-y-2">
-              <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
-                📊 Posição de Estoque
-              </button>
-              <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
-                📈 Giro de Estoque
-              </button>
-              <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
-                🎯 Curva ABC
-              </button>
+          {/* Mapa de Depósito */}
+          <div className="bg-white shadow-lg rounded-xl border border-gray-200 p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-6 flex items-center">
+              <MapPin className="h-5 w-5 mr-2" />
+              Mapa do Depósito
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {depositos.map((deposito) => (
+                <div key={deposito.id} className="border-2 border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                  <h4 className="font-medium text-gray-900 mb-2">{deposito.nome}</h4>
+                  <p className="text-sm text-gray-500 mb-3">
+                    {deposito.quantidade.toLocaleString('pt-BR')} {deposito.unidade}
+                  </p>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-300"
+                      style={{ width: `${deposito.ocupacaoPercentual}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {deposito.ocupacaoPercentual.toFixed(1)}% ocupado
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Alertas</h3>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between p-2 bg-red-50 rounded">
-                <span className="text-sm text-red-800">8 produtos fora de estoque</span>
-                <span className="text-xs text-red-600">🚨</span>
+          {/* Alertas */}
+          <div className="mt-8 bg-white shadow-lg rounded-xl border border-gray-200 p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <AlertTriangle className="h-5 w-5 mr-2 text-yellow-500" />
+              Alertas de Estoque
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
+                <div className="flex items-center">
+                  <XCircle className="h-5 w-5 text-red-500 mr-3" />
+                  <span className="text-sm text-red-800">{metrics.foraEstoque} produtos fora de estoque</span>
+                </div>
               </div>
-              <div className="flex items-center justify-between p-2 bg-yellow-50 rounded">
-                <span className="text-sm text-yellow-800">23 produtos com baixo estoque</span>
-                <span className="text-xs text-yellow-600">⚠️</span>
+              <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div className="flex items-center">
+                  <AlertTriangle className="h-5 w-5 text-yellow-500 mr-3" />
+                  <span className="text-sm text-yellow-800">{metrics.baixoEstoque} produtos com baixo estoque</span>
+                </div>
               </div>
-              <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                <span className="text-sm text-blue-800">5 produtos em excesso</span>
-                <span className="text-xs text-blue-600">ℹ️</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Mapa de Depósito */}
-        <div className="mt-6 bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Mapa do Depósito</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="border-2 border-gray-200 rounded-lg p-4 text-center">
-              <h4 className="font-medium text-gray-900">Depósito A</h4>
-              <p className="text-sm text-gray-500">2.140m de tecido</p>
-              <div className="mt-2 grid grid-cols-3 gap-1">
-                {Array.from({ length: 9 }, (_, i) => (
-                  <div
-                    key={i}
-                    className={`w-6 h-6 rounded ${
-                      i < 6 ? 'bg-green-200' : i < 8 ? 'bg-yellow-200' : 'bg-red-200'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="border-2 border-gray-200 rounded-lg p-4 text-center">
-              <h4 className="font-medium text-gray-900">Depósito B</h4>
-              <p className="text-sm text-gray-500">245m de tecido</p>
-              <div className="mt-2 grid grid-cols-3 gap-1">
-                {Array.from({ length: 9 }, (_, i) => (
-                  <div
-                    key={i}
-                    className={`w-6 h-6 rounded ${
-                      i < 2 ? 'bg-green-200' : i < 7 ? 'bg-gray-200' : 'bg-red-200'
-                    }`}
-                  />
-                ))}
+              <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                  <span className="text-sm text-green-800">{metrics.produtosOK} produtos em situação normal</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </ProtectedRoute>
   );
 }

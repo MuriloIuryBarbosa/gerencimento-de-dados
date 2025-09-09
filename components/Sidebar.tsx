@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, ChevronRight, Home, Settings, BarChart3, Package, Truck, FileText, ShoppingCart, ClipboardList, Palette, DollarSign, Archive, Layers, LogOut, Shield, User, Crown, ShieldCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home, Settings, BarChart3, Package, Truck, FileText, ShoppingCart, ClipboardList, Palette, DollarSign, Archive, Layers, LogOut, Shield, User, Crown, ShieldCheck, Bell, Ruler, Building2, Warehouse } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
 import { useUserPermissions } from "./useUserPermissions";
 import { useUsuarioAtual } from "./useUsuarioAtual";
@@ -15,12 +15,14 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const { canAccessAdmin, loading: permissionsLoading } = useUserPermissions();
   const { usuario, loading: userLoading, papel, cargo } = useUsuarioAtual();
   const { logout } = useAuth();
   const pathname = usePathname();
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const unreadCount = 0; // Temporário - implementar depois
 
   // Função para determinar qual módulo deve estar expandido baseado na rota atual
   const getModuleFromPath = (path: string): string | null => {
@@ -42,6 +44,10 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       '/executivo/precos': 'Executivo',
       '/executivo/estoque': 'Executivo',
       '/executivo/cores': 'Executivo',
+      '/executivo/familias': 'Executivo',
+      '/executivo/tamanhos': 'Executivo',
+      '/executivo/uneg': 'Executivo',
+      '/executivo/depositos': 'Executivo',
 
       // Cubagem
       '/cubagem': 'Cubagem',
@@ -176,6 +182,30 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
           href: "/executivo/cores",
           icon: Palette,
           description: "Gerenciar cores"
+        },
+        {
+          name: "Famílias",
+          href: "/executivo/familias",
+          icon: Package,
+          description: "Gerenciar famílias de produtos"
+        },
+        {
+          name: "Tamanhos",
+          href: "/executivo/tamanhos",
+          icon: Ruler,
+          description: "Gerenciar tamanhos de produtos"
+        },
+        {
+          name: "UNEG",
+          href: "/executivo/uneg",
+          icon: Building2,
+          description: "Gerenciar unidades de negócio"
+        },
+        {
+          name: "Depósitos",
+          href: "/executivo/depositos",
+          icon: Warehouse,
+          description: "Gerenciar depósitos e centros de distribuição"
         }
       ]
     },
@@ -310,18 +340,63 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       <div className={`fixed left-0 top-0 h-full bg-gray-800 text-white transition-all duration-300 z-50 ${
         isOpen ? 'w-64 lg:w-64' : 'w-16 lg:w-16'
       } ${isOpen ? 'block' : 'hidden lg:block'}`}>
-      {/* Header */}
+      {/* Header with Controls */}
       <div className="flex items-center justify-between p-4 border-b border-gray-700">
         {isOpen && (
           <h2 className="text-lg font-semibold text-white">{t('system')}</h2>
         )}
-        <button
-          onClick={toggleSidebar}
-          className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
-          aria-label={isOpen ? "Recolher menu" : "Expandir menu"}
-        >
-          {isOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-        </button>
+        <div className="flex items-center space-x-2">
+          {/* Language Selector */}
+          {isOpen && (
+            <div className="flex items-center bg-gray-700 rounded-full p-1">
+              <button
+                onClick={() => setLanguage('pt')}
+                className={`px-3 py-1 rounded-full text-xs transition-all duration-200 ${
+                  language === 'pt'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-300 hover:text-white'
+                }`}
+              >
+                🇧🇷 PT
+              </button>
+              <button
+                onClick={() => setLanguage('en')}
+                className={`px-3 py-1 rounded-full text-xs transition-all duration-200 ${
+                  language === 'en'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-300 hover:text-white'
+                }`}
+              >
+                🇺🇸 EN
+              </button>
+            </div>
+          )}
+
+          {/* Notifications */}
+          <div className="relative">
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="p-2 rounded-lg hover:bg-gray-700 transition-colors relative"
+              title="Notificações"
+            >
+              <Bell size={18} className="text-gray-300" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Toggle Button */}
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
+            aria-label={isOpen ? "Recolher menu" : "Expandir menu"}
+          >
+            {isOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+          </button>
+        </div>
       </div>
 
       {/* User Info Section */}
@@ -388,9 +463,9 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
             <span>Ver Perfil Completo</span>
           </Link>
         </div>
-      )}      {/* Menu Items */}
-      <nav className="mt-8">
-        <ul className="space-y-2 px-2">
+      )}      {/* Menu Items with Scroll */}
+      <nav className="mt-8 flex-1 overflow-y-auto">
+        <ul className="space-y-2 px-2 pb-20">
           {menuModules.map((module) => {
             const Icon = module.icon;
 

@@ -1,19 +1,28 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { useLanguage } from "../../../../components/LanguageContext";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { User, ArrowLeft, Save, AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function NovoRepresentante() {
-  const { t } = useLanguage();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
     telefone: "",
     empresa: "",
-    comissao: ""
+    comissao: "",
+    ativo: true
   });
-  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -23,14 +32,31 @@ export default function NovoRepresentante() {
     }));
   };
 
+  const handleSwitchChange = (checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      ativo: checked
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
     try {
-      const dataToSend = {
-        ...formData,
-        comissao: formData.comissao ? parseFloat(formData.comissao) : null
+      // Validar campos obrigatórios
+      if (!formData.nome.trim()) {
+        throw new Error("Nome é obrigatório");
+      }
+
+      const payload = {
+        nome: formData.nome.trim(),
+        email: formData.email.trim() || null,
+        telefone: formData.telefone.trim() || null,
+        empresa: formData.empresa.trim() || null,
+        comissao: formData.comissao ? parseFloat(formData.comissao) : 0,
+        ativo: formData.ativo
       };
 
       const response = await fetch('/api/representantes', {
@@ -38,146 +64,199 @@ export default function NovoRepresentante() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(dataToSend),
+        body: JSON.stringify(payload),
       });
 
-      if (response.ok) {
-        alert(t('representativeCreated'));
-        setFormData({
-          nome: "",
-          email: "",
-          telefone: "",
-          empresa: "",
-          comissao: ""
-        });
-      } else {
-        throw new Error('Erro ao criar representante');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao criar representante');
       }
+
+      setSuccess(true);
+      setTimeout(() => {
+        router.push('/cadastro/representantes');
+      }, 2000);
+
     } catch (error) {
-      console.error('Erro:', error);
-      alert(t('errorCreatingRepresentative'));
+      console.error('Erro ao criar representante:', error);
+      setError(error instanceof Error ? error.message : 'Erro desconhecido');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{t('newRepresentative')}</h1>
-              <p className="mt-1 text-sm text-gray-500">
-                {t('fillRepresentativeData')}
-              </p>
+  if (success) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card className="max-w-md mx-auto">
+          <CardContent className="p-6 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <User className="h-8 w-8 text-green-600" />
             </div>
-            <nav className="flex space-x-4">
-              <Link
-                href="/cadastro/representantes"
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                ← {t('back')}
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Representante Criado!
+            </h2>
+            <p className="text-gray-600 mb-4">
+              O representante foi criado com sucesso e você será redirecionado em instantes.
+            </p>
+            <Link href="/cadastro/representantes">
+              <Button>
+                Voltar para Lista
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                {t('representativeInfo')}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('name')} *
-                  </label>
-                  <input
-                    type="text"
-                    name="nome"
-                    value={formData.nome}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <User className="h-8 w-8" />
+              Novo Representante
+            </h1>
+            <p className="text-purple-100 mt-2">
+              Cadastre um novo representante no sistema
+            </p>
+          </div>
+          <Link href="/cadastro/representantes">
+            <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Form */}
+      <Card className="max-w-2xl">
+        <CardHeader>
+          <CardTitle>Informações do Representante</CardTitle>
+          <CardDescription>
+            Preencha os dados do novo representante
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                <div className="flex">
+                  <AlertCircle className="h-5 w-5 text-red-400" />
+                  <div className="ml-3">
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('email')}
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="nome">Nome *</Label>
+                <Input
+                  id="nome"
+                  name="nome"
+                  type="text"
+                  value={formData.nome}
+                  onChange={handleInputChange}
+                  placeholder="Nome completo do representante"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="email@exemplo.com"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="telefone">Telefone</Label>
+                <Input
+                  id="telefone"
+                  name="telefone"
+                  type="tel"
+                  value={formData.telefone}
+                  onChange={handleInputChange}
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="empresa">Empresa</Label>
+                <Input
+                  id="empresa"
+                  name="empresa"
+                  type="text"
+                  value={formData.empresa}
+                  onChange={handleInputChange}
+                  placeholder="Nome da empresa"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="comissao">Comissão (%)</Label>
+                <Input
+                  id="comissao"
+                  name="comissao"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={formData.comissao}
+                  onChange={handleInputChange}
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="ativo">Status</Label>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="ativo"
+                    checked={formData.ativo}
+                    onCheckedChange={handleSwitchChange}
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('phone')}
-                  </label>
-                  <input
-                    type="text"
-                    name="telefone"
-                    value={formData.telefone}
-                    onChange={handleInputChange}
-                    placeholder="(00) 00000-0000"
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('company')}
-                  </label>
-                  <input
-                    type="text"
-                    name="empresa"
-                    value={formData.empresa}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('commission')} (%)
-                  </label>
-                  <input
-                    type="number"
-                    name="comissao"
-                    value={formData.comissao}
-                    onChange={handleInputChange}
-                    step="0.01"
-                    min="0"
-                    max="100"
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
+                  <Label htmlFor="ativo" className="text-sm">
+                    {formData.ativo ? 'Ativo' : 'Inativo'}
+                  </Label>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex justify-end space-x-4">
-            <Link
-              href="/cadastro/representantes"
-              className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
-            >
-              {t('cancel')}
-            </Link>
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              {loading ? t('saving') : t('save')}
-            </button>
-          </div>
-        </form>
-      </main>
+            <div className="flex gap-4 pt-6">
+              <Link href="/cadastro/representantes">
+                <Button type="button" variant="outline">
+                  Cancelar
+                </Button>
+              </Link>
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Criando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Criar Representante
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,11 +1,80 @@
 "use client";
 
-import Link from "next/link";
 import { useLanguage } from "../../components/LanguageContext";
-import { ShoppingCart, FileText, ClipboardList, Package, Truck, BarChart3, Calendar, TrendingUp, AlertCircle } from 'lucide-react';
+import { useEffect, useState } from "react";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import Link from "next/link";
+import { ShoppingCart, FileText, ClipboardList, Package, Truck, BarChart3, Calendar, TrendingUp, AlertCircle, CheckCircle, Clock, DollarSign } from 'lucide-react';
+
+interface PlanejamentoData {
+  ordensCompra: {
+    total: number;
+    valorTotal: number;
+    porStatus: Array<{ status: string; _count: { id: number } }>;
+    pendentes: number;
+  };
+  requisicoes: {
+    total: number;
+    porStatus: Array<{ status: string; _count: { id: number } }>;
+    pendentes: number;
+  };
+  proformas: {
+    total: number;
+    valorTotal: number;
+    porStatus: Array<{ status: string; _count: { id: number } }>;
+  };
+  followUps: {
+    total: number;
+    porPrioridade: Array<{ prioridade: string; _count: { id: number } }>;
+    vencendo: number;
+  };
+  estoque: {
+    totalProdutos: number;
+    quantidadeTotal: number;
+    valorTotal: number;
+  };
+  indicadores: {
+    ordensPendentes: number;
+    eficienciaLogistica: number;
+    custoMedioContainer: number;
+    tempoMedioEntrega: number;
+    movimentacoesRecentes: number;
+  };
+}
 
 export default function Planejamento() {
   const { t } = useLanguage();
+  const [planejamentoData, setPlanejamentoData] = useState<PlanejamentoData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPlanejamentoData = async () => {
+      try {
+        const response = await fetch('/api/planejamento');
+        if (response.ok) {
+          const data = await response.json();
+          setPlanejamentoData(data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados do planejamento:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlanejamentoData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando dados do planejamento...</p>
+        </div>
+      </div>
+    );
+  }
 
   const modulos = [
     {
@@ -14,7 +83,11 @@ export default function Planejamento() {
       descricao: 'Gerenciar ordens de compra e aprovações',
       icone: ShoppingCart,
       cor: 'from-blue-500 to-blue-600',
-      stats: { total: 156, pendentes: 23, aprovadas: 133 }
+      stats: {
+        total: planejamentoData?.ordensCompra.total || 0,
+        pendentes: planejamentoData?.ordensCompra.pendentes || 0,
+        aprovadas: planejamentoData?.ordensCompra.porStatus.find(s => s.status === 'Aprovada')?._count.id || 0
+      }
     },
     {
       nome: t('proformas'),
@@ -22,7 +95,11 @@ export default function Planejamento() {
       descricao: 'Gerenciar proformas e cotações',
       icone: FileText,
       cor: 'from-green-500 to-green-600',
-      stats: { total: 89, ativas: 67, expiradas: 22 }
+      stats: {
+        total: planejamentoData?.proformas.total || 0,
+        ativas: planejamentoData?.proformas.porStatus.find(s => s.status === 'Ativa')?._count.id || 0,
+        expiradas: planejamentoData?.proformas.porStatus.find(s => s.status === 'Expirada')?._count.id || 0
+      }
     },
     {
       nome: t('requisitions'),
@@ -30,7 +107,11 @@ export default function Planejamento() {
       descricao: 'Gerenciar requisições de materiais',
       icone: ClipboardList,
       cor: 'from-purple-500 to-purple-600',
-      stats: { total: 234, pendentes: 45, aprovadas: 189 }
+      stats: {
+        total: planejamentoData?.requisicoes.total || 0,
+        pendentes: planejamentoData?.requisicoes.pendentes || 0,
+        aprovadas: planejamentoData?.requisicoes.porStatus.find(s => s.status === 'Aprovada')?._count.id || 0
+      }
     },
     {
       nome: t('containers'),
@@ -38,7 +119,11 @@ export default function Planejamento() {
       descricao: 'Gerenciar programação de containers',
       icone: Package,
       cor: 'from-orange-500 to-orange-600',
-      stats: { total: 78, programados: 56, emTransito: 22 }
+      stats: {
+        total: planejamentoData?.indicadores.movimentacoesRecentes || 0,
+        programados: Math.floor((planejamentoData?.indicadores.movimentacoesRecentes || 0) * 0.7),
+        emTransito: Math.floor((planejamentoData?.indicadores.movimentacoesRecentes || 0) * 0.3)
+      }
     },
     {
       nome: t('followUp'),
@@ -46,24 +131,29 @@ export default function Planejamento() {
       descricao: 'Acompanhar logística e entregas',
       icone: Truck,
       cor: 'from-red-500 to-red-600',
-      stats: { total: 145, noPrazo: 128, atrasadas: 17 }
+      stats: {
+        total: planejamentoData?.followUps.total || 0,
+        noPrazo: (planejamentoData?.followUps.total || 0) - (planejamentoData?.followUps.vencendo || 0),
+        atrasadas: planejamentoData?.followUps.vencendo || 0
+      }
     }
   ];
 
   // Estatísticas gerais do módulo planejamento
   const estatisticasGerais = {
-    ordensPendentes: 23 + 5, // OCs pendentes de aprovação (23) + OCs com prazo estourado (5)
-    containersSemana: 12,
-    entregasAtrasadas: 17,
-    eficienciaLogistica: 88.5,
-    custoMedioContainer: 2850,
-    tempoMedioEntrega: 28
+    ordensPendentes: planejamentoData?.indicadores.ordensPendentes || 0,
+    containersSemana: planejamentoData?.indicadores.movimentacoesRecentes || 0,
+    entregasAtrasadas: planejamentoData?.followUps.vencendo || 0,
+    eficienciaLogistica: planejamentoData?.indicadores.eficienciaLogistica || 0,
+    custoMedioContainer: planejamentoData?.indicadores.custoMedioContainer || 0,
+    tempoMedioEntrega: planejamentoData?.indicadores.tempoMedioEntrega || 0
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        {/* Header */}
+        <header className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
@@ -90,49 +180,63 @@ export default function Planejamento() {
       </header>
 
       <main className="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
-        {/* Estatísticas Gerais */}
+        {/* Cards de Métricas Principais */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Indicadores de Performance</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Ordens Pendentes</p>
-                  <p className="text-3xl font-bold text-gray-900">{estatisticasGerais.ordensPendentes}</p>
+                  <p className="text-sm font-medium text-blue-100">Ordens Pendentes</p>
+                  <p className="text-3xl font-bold">{estatisticasGerais.ordensPendentes}</p>
                 </div>
-                <ShoppingCart className="h-8 w-8 text-blue-500" />
+                <ShoppingCart className="h-8 w-8 text-blue-200" />
               </div>
               <div className="mt-4 flex items-center text-sm">
-                <AlertCircle className="h-4 w-4 text-orange-500 mr-1" />
-                <span className="text-orange-600">Requer atenção</span>
+                <AlertCircle className="h-4 w-4 text-yellow-300 mr-1" />
+                <span className="text-blue-100">Requer atenção</span>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Eficiência Logística</p>
-                  <p className="text-3xl font-bold text-gray-900">{estatisticasGerais.eficienciaLogistica}%</p>
+                  <p className="text-sm font-medium text-green-100">Eficiência Logística</p>
+                  <p className="text-3xl font-bold">{estatisticasGerais.eficienciaLogistica}%</p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-green-500" />
+                <TrendingUp className="h-8 w-8 text-green-200" />
               </div>
               <div className="mt-4 flex items-center text-sm">
-                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                <span className="text-green-600">+5.2% vs mês anterior</span>
+                <TrendingUp className="h-4 w-4 text-green-200 mr-1" />
+                <span className="text-green-100">Performance</span>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-500">
+            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Entregas Atrasadas</p>
-                  <p className="text-3xl font-bold text-gray-900">{estatisticasGerais.entregasAtrasadas}</p>
+                  <p className="text-sm font-medium text-purple-100">Produtos em Estoque</p>
+                  <p className="text-3xl font-bold">{planejamentoData?.estoque.totalProdutos || 0}</p>
                 </div>
-                <AlertCircle className="h-8 w-8 text-red-500" />
+                <Package className="h-8 w-8 text-purple-200" />
               </div>
               <div className="mt-4 flex items-center text-sm">
-                <AlertCircle className="h-4 w-4 text-red-500 mr-1" />
-                <span className="text-red-600">Ação necessária</span>
+                <CheckCircle className="h-4 w-4 text-purple-200 mr-1" />
+                <span className="text-purple-100">SKUs ativos</span>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-orange-100">Valor Total Estoque</p>
+                  <p className="text-2xl font-bold">R$ {(planejamentoData?.estoque.valorTotal || 0).toLocaleString()}</p>
+                </div>
+                <DollarSign className="h-8 w-8 text-orange-200" />
+              </div>
+              <div className="mt-4 flex items-center text-sm">
+                <TrendingUp className="h-4 w-4 text-orange-200 mr-1" />
+                <span className="text-orange-100">Valor consolidado</span>
               </div>
             </div>
           </div>
@@ -140,37 +244,56 @@ export default function Planejamento() {
 
         {/* Alertas e Próximas Ações */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Próximas Ações e Alertas</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Alertas e Próximas Ações</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6">
               <div className="flex items-center mb-4">
-                <Calendar className="h-6 w-6 text-blue-500 mr-3" />
-                <h3 className="text-lg font-semibold text-blue-800">Containers da Semana</h3>
+                <Clock className="h-6 w-6 text-blue-500 mr-3" />
+                <h3 className="text-lg font-semibold text-blue-800">Ordens Pendentes</h3>
               </div>
               <p className="text-blue-700 mb-4">
-                {estatisticasGerais.containersSemana} containers programados para esta semana.
-              </p>
-              <Link
-                href="/conteineres"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Ver Programação
-              </Link>
-            </div>
-
-            <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
-              <div className="flex items-center mb-4">
-                <AlertCircle className="h-6 w-6 text-orange-500 mr-3" />
-                <h3 className="text-lg font-semibold text-orange-800">Ordens Pendentes</h3>
-              </div>
-              <p className="text-orange-700 mb-4">
                 {estatisticasGerais.ordensPendentes} ordens de compra aguardando aprovação.
               </p>
               <Link
                 href="/ordem-compra"
-                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors inline-flex items-center"
               >
                 Revisar Ordens
+                <AlertCircle className="h-4 w-4 ml-2" />
+              </Link>
+            </div>
+
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-6">
+              <div className="flex items-center mb-4">
+                <AlertCircle className="h-6 w-6 text-orange-500 mr-3" />
+                <h3 className="text-lg font-semibold text-orange-800">Follow-ups Vencendo</h3>
+              </div>
+              <p className="text-orange-700 mb-4">
+                {planejamentoData?.followUps.vencendo || 0} follow-ups vencem nos próximos 7 dias.
+              </p>
+              <Link
+                href="/followup"
+                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors inline-flex items-center"
+              >
+                Ver Follow-ups
+                <Calendar className="h-4 w-4 ml-2" />
+              </Link>
+            </div>
+
+            <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl p-6">
+              <div className="flex items-center mb-4">
+                <TrendingUp className="h-6 w-6 text-green-500 mr-3" />
+                <h3 className="text-lg font-semibold text-green-800">Movimentações Recentes</h3>
+              </div>
+              <p className="text-green-700 mb-4">
+                {planejamentoData?.indicadores.movimentacoesRecentes || 0} movimentações de estoque nos últimos 30 dias.
+              </p>
+              <Link
+                href="/executivo/estoque"
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors inline-flex items-center"
+              >
+                Ver Estoque
+                <Package className="h-4 w-4 ml-2" />
               </Link>
             </div>
           </div>
@@ -264,5 +387,6 @@ export default function Planejamento() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   );
 }

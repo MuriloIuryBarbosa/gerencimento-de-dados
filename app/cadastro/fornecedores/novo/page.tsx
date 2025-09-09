@@ -20,14 +20,15 @@ export default function NovoFornecedor() {
     email: "",
     contatoPrincipal: "",
     condicoesPagamento: "",
-    prazoEntregaPadrao: ""
+    prazoEntregaPadrao: "",
+    ativo: true
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -96,7 +97,8 @@ export default function NovoFornecedor() {
         email: "",
         contatoPrincipal: "",
         condicoesPagamento: "",
-        prazoEntregaPadrao: ""
+        prazoEntregaPadrao: "",
+        ativo: true
       });
 
       // Redirect after success
@@ -247,6 +249,20 @@ export default function NovoFornecedor() {
                   placeholder="Nome da pessoa de contato"
                   className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 />
+              </div>
+
+              {/* Status */}
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="ativo"
+                  checked={formData.ativo}
+                  onChange={(e) => handleInputChange('ativo', e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                <Label htmlFor="ativo" className="text-sm font-medium text-gray-700">
+                  Fornecedor ativo
+                </Label>
               </div>
 
               {/* Condições Comerciais */}

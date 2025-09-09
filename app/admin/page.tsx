@@ -28,29 +28,29 @@ export default function AdminDashboard() {
   });
   const [dbSetupLoading, setDbSetupLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Buscar estatísticas
-        const statsResponse = await fetch('/api/admin/stats');
-        if (statsResponse.ok) {
-          const statsData = await statsResponse.json();
-          setStats(statsData);
-        }
-
-        // Buscar usuários
-        const usersResponse = await fetch('/api/admin/usuarios');
-        if (usersResponse.ok) {
-          const usersData = await usersResponse.json();
-          setUsuarios(usersData);
-        }
-      } catch (error) {
-        console.error('Erro ao buscar dados:', error);
-      } finally {
-        setLoading(false);
+  const fetchData = async () => {
+    try {
+      // Buscar estatísticas
+      const statsResponse = await fetch('/api/admin/stats');
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json();
+        setStats(statsData);
       }
-    };
 
+      // Buscar usuários
+      const usersResponse = await fetch('/api/admin/usuarios');
+      if (usersResponse.ok) {
+        const usersData = await usersResponse.json();
+        setUsuarios(usersData);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 

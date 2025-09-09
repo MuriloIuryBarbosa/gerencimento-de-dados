@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 // Simulação de API de CNPJ - Em produção, integrar com serviço real
 export async function GET(
   request: NextRequest,
-  { params }: { params: { cnpj: string } }
+  { params }: { params: Promise<{ cnpj: string }> }
 ) {
   try {
-    const cnpj = params.cnpj;
+    const { cnpj } = await params;
 
     // Validação básica do CNPJ
     if (!cnpj || cnpj.length !== 14) {
@@ -94,8 +94,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Redirecionar para o GET
-    const response = await GET(request, { params: { cnpj } });
+    // Criar uma requisição GET simulada
+    const getRequest = new Request(`${request.url.split('?')[0]}/${cnpj}`, {
+      method: 'GET',
+      headers: request.headers
+    });
+
+    const response = await GET(getRequest as NextRequest, { params: Promise.resolve({ cnpj }) });
     return response;
 
   } catch (error) {

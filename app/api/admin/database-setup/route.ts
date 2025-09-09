@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       console.error('Erro ao executar prisma db push:', error);
       return NextResponse.json(
-        { error: 'Erro ao criar tabelas do banco de dados', details: error.message },
+        { error: 'Erro ao criar tabelas do banco de dados', details: error instanceof Error ? error.message : 'Erro desconhecido' },
         { status: 500 }
       );
     }

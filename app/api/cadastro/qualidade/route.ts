@@ -213,7 +213,7 @@ async function analisarQualidadeTransportadoras(): Promise<EstatisticasTabela> {
 }
 
 async function analisarQualidadeEmpresas(): Promise<EstatisticasTabela> {
-  const empresas = await prisma.empresa.findMany();
+  const empresas = await prisma.empresa.findMany() as any[];
   const total = empresas.length;
 
   let completos = 0;
@@ -313,6 +313,36 @@ export async function GET() {
     const qualidadeGeral = totalRegistros > 0 ? (registrosCompletos / totalRegistros) * 100 : 0;
     const tabelasComProblemas = detalhesPorTabela.filter(tabela => tabela.problemas.length > 0).length;
 
+    // Buscar último cálculo para comparar evolução
+    const ultimoCalculo = await (prisma as any).historicoQualidadeDados.findFirst({
+      orderBy: { dataCalculo: 'desc' }
+    });
+
+    let evolucaoQualidade = 0;
+    let evolucaoRegistros = 0;
+    let statusEvolucao = 'estavel';
+
+    if (ultimoCalculo) {
+      evolucaoQualidade = Math.round((qualidadeGeral - Number(ultimoCalculo.qualidadeGeral)) * 10) / 10;
+      evolucaoRegistros = totalRegistros - ultimoCalculo.totalRegistros;
+
+      if (evolucaoQualidade > 1) statusEvolucao = 'melhoria';
+      else if (evolucaoQualidade < -1) statusEvolucao = 'retrocesso';
+    }
+
+    // Registrar histórico
+    await (prisma as any).historicoQualidadeDados.create({
+      data: {
+        qualidadeGeral: qualidadeGeral,
+        totalTabelas,
+        totalRegistros,
+        registrosCompletos,
+        registrosIncompletos,
+        detalhesTabelas: JSON.stringify(detalhesPorTabela),
+        observacoes: `Cálculo automático - Qualidade: ${Math.round(qualidadeGeral * 10) / 10}%`
+      }
+    });
+
     // Gerar alertas
     const alertas = await gerarAlertas(detalhesPorTabela);
 
@@ -324,7 +354,13 @@ export async function GET() {
       qualidadeGeral: Math.round(qualidadeGeral * 10) / 10,
       tabelasComProblemas,
       detalhesPorTabela,
-      alertas
+      alertas,
+      evolucao: {
+        qualidade: evolucaoQualidade,
+        registros: evolucaoRegistros,
+        status: statusEvolucao,
+        ultimoCalculo: ultimoCalculo?.dataCalculo
+      }
     };
 
     return NextResponse.json({

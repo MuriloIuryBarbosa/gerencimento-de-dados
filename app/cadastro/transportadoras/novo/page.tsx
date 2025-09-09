@@ -1,11 +1,18 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { useLanguage } from "../../../../components/LanguageContext";
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Save, ArrowLeft, AlertCircle, CheckCircle, Truck } from 'lucide-react';
+import Link from 'next/link';
 
 export default function NovaTransportadora() {
-  const { t } = useLanguage();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     nome: "",
     cnpj: "",
@@ -14,27 +21,61 @@ export default function NovaTransportadora() {
     email: "",
     contato: "",
     prazoEntrega: "",
-    valorFrete: ""
+    valorFrete: "",
+    ativo: true
   });
-  const [loading, setLoading] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [field]: value
     }));
+  };
+
+  const validateForm = () => {
+    if (!formData.nome.trim()) {
+      setError('Nome da transportadora é obrigatório');
+      return false;
+    }
+    if (formData.cnpj && !/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(formData.cnpj)) {
+      setError('CNPJ deve estar no formato 00.000.000/0000-00');
+      return false;
+    }
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError('E-mail deve ter um formato válido');
+      return false;
+    }
+    if (formData.prazoEntrega && parseInt(formData.prazoEntrega) < 0) {
+      setError('Prazo de entrega não pode ser negativo');
+      return false;
+    }
+    if (formData.valorFrete && parseFloat(formData.valorFrete) < 0) {
+      setError('Valor do frete não pode ser negativo');
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+
+    if (!validateForm()) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const dataToSend = {
         ...formData,
         prazoEntrega: formData.prazoEntrega ? parseInt(formData.prazoEntrega) : null,
-        valorFrete: formData.valorFrete ? parseFloat(formData.valorFrete) : null
+        valorFrete: formData.valorFrete ? parseFloat(formData.valorFrete) : 0
       };
 
       const response = await fetch('/api/transportadoras', {
@@ -45,183 +86,253 @@ export default function NovaTransportadora() {
         body: JSON.stringify(dataToSend),
       });
 
-      if (response.ok) {
-        alert(t('carrierCreated'));
-        setFormData({
-          nome: "",
-          cnpj: "",
-          endereco: "",
-          telefone: "",
-          email: "",
-          contato: "",
-          prazoEntrega: "",
-          valorFrete: ""
-        });
-      } else {
-        throw new Error('Erro ao criar transportadora');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao criar transportadora');
       }
+
+      setSuccess('Transportadora criada com sucesso!');
+
+      // Reset form
+      setFormData({
+        nome: "",
+        cnpj: "",
+        endereco: "",
+        telefone: "",
+        email: "",
+        contato: "",
+        prazoEntrega: "",
+        valorFrete: "",
+        ativo: true
+      });
+
+      // Redirect after success
+      setTimeout(() => {
+        router.push('/cadastro/transportadoras');
+      }, 2000);
+
     } catch (error) {
       console.error('Erro:', error);
-      alert(t('errorCreatingCarrier'));
+      setError(error instanceof Error ? error.message : 'Erro ao criar transportadora');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
+  const handleCancel = () => {
+    router.push('/cadastro/transportadoras');
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{t('newCarrier')}</h1>
-              <p className="mt-1 text-sm text-gray-500">
-                {t('fillCarrierData')}
-              </p>
-            </div>
-            <nav className="flex space-x-4">
-              <Link
-                href="/cadastro/transportadoras"
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                ← {t('back')}
-              </Link>
-            </nav>
+    <div className="container mx-auto p-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-orange-600 to-red-600 rounded-lg p-6 text-white mb-6">
+        <div className="flex items-center gap-2">
+          <Truck className="h-8 w-8" />
+          <div>
+            <h1 className="text-3xl font-bold">Nova Transportadora</h1>
+            <p className="text-orange-100 mt-2">
+              Cadastre uma nova transportadora para seu sistema
+            </p>
           </div>
         </div>
-      </header>
+      </div>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                {t('carrierInfo')}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('name')} *
-                  </label>
-                  <input
-                    type="text"
-                    name="nome"
-                    value={formData.nome}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('cnpj')}
-                  </label>
-                  <input
-                    type="text"
-                    name="cnpj"
-                    value={formData.cnpj}
-                    onChange={handleInputChange}
-                    placeholder="00.000.000/0000-00"
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('email')}
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('phone')}
-                  </label>
-                  <input
-                    type="text"
-                    name="telefone"
-                    value={formData.telefone}
-                    onChange={handleInputChange}
-                    placeholder="(00) 00000-0000"
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('contact')}
-                  </label>
-                  <input
-                    type="text"
-                    name="contato"
-                    value={formData.contato}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('deliveryDeadline')} ({t('days')})
-                  </label>
-                  <input
-                    type="number"
-                    name="prazoEntrega"
-                    value={formData.prazoEntrega}
-                    onChange={handleInputChange}
-                    min="1"
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('freightValue')}
-                  </label>
-                  <input
-                    type="number"
-                    name="valorFrete"
-                    value={formData.valorFrete}
-                    onChange={handleInputChange}
-                    step="0.01"
-                    min="0"
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('address')}
-                  </label>
-                  <textarea
-                    name="endereco"
-                    value={formData.endereco}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
+      {/* Form */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Informações da Transportadora</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {success && (
+            <Alert>
+              <CheckCircle className="h-4 w-4" />
+              <AlertDescription>{success}</AlertDescription>
+            </Alert>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Nome e CNPJ */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="nome" className="text-sm font-medium text-gray-700">
+                  Nome da Transportadora *
+                </Label>
+                <Input
+                  id="nome"
+                  type="text"
+                  value={formData.nome}
+                  onChange={(e) => handleInputChange('nome', e.target.value)}
+                  placeholder="Digite o nome da transportadora"
+                  className="h-12 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="cnpj" className="text-sm font-medium text-gray-700">
+                  CNPJ
+                </Label>
+                <Input
+                  id="cnpj"
+                  type="text"
+                  value={formData.cnpj}
+                  onChange={(e) => handleInputChange('cnpj', e.target.value)}
+                  placeholder="00.000.000/0000-00"
+                  className="h-12 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                />
               </div>
             </div>
-          </div>
 
-          <div className="flex justify-end space-x-4">
-            <Link
-              href="/cadastro/transportadoras"
-              className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
-            >
-              {t('cancel')}
-            </Link>
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              {loading ? t('saving') : t('save')}
-            </button>
-          </div>
-        </form>
-      </main>
+            {/* Contato */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="telefone" className="text-sm font-medium text-gray-700">
+                  Telefone
+                </Label>
+                <Input
+                  id="telefone"
+                  type="tel"
+                  value={formData.telefone}
+                  onChange={(e) => handleInputChange('telefone', e.target.value)}
+                  placeholder="(11) 99999-9999"
+                  className="h-12 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  E-mail
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="transportadora@email.com"
+                  className="h-12 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                />
+              </div>
+            </div>
+
+            {/* Contato Principal */}
+            <div className="space-y-2">
+              <Label htmlFor="contato" className="text-sm font-medium text-gray-700">
+                Contato Principal
+              </Label>
+              <Input
+                id="contato"
+                type="text"
+                value={formData.contato}
+                onChange={(e) => handleInputChange('contato', e.target.value)}
+                placeholder="Nome da pessoa de contato"
+                className="h-12 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+              />
+            </div>
+
+            {/* Endereço */}
+            <div className="space-y-2">
+              <Label htmlFor="endereco" className="text-sm font-medium text-gray-700">
+                Endereço
+              </Label>
+              <Textarea
+                id="endereco"
+                value={formData.endereco}
+                onChange={(e) => handleInputChange('endereco', e.target.value)}
+                placeholder="Digite o endereço completo da transportadora"
+                className="min-h-24 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                rows={3}
+              />
+            </div>
+
+            {/* Dados Comerciais */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="prazoEntrega" className="text-sm font-medium text-gray-700">
+                  Prazo de Entrega (dias)
+                </Label>
+                <Input
+                  id="prazoEntrega"
+                  type="number"
+                  value={formData.prazoEntrega}
+                  onChange={(e) => handleInputChange('prazoEntrega', e.target.value)}
+                  placeholder="30"
+                  min="1"
+                  className="h-12 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="valorFrete" className="text-sm font-medium text-gray-700">
+                  Valor do Frete (R$)
+                </Label>
+                <Input
+                  id="valorFrete"
+                  type="number"
+                  value={formData.valorFrete}
+                  onChange={(e) => handleInputChange('valorFrete', e.target.value)}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  className="h-12 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                />
+              </div>
+            </div>
+
+            {/* Status */}
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="ativo"
+                checked={formData.ativo}
+                onChange={(e) => handleInputChange('ativo', e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              <Label htmlFor="ativo" className="text-sm font-medium text-gray-700">
+                Transportadora ativa
+              </Label>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-4 pt-6 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                className="h-12 px-8 border-gray-300 hover:bg-gray-50"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="h-12 px-8 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Salvar Transportadora
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

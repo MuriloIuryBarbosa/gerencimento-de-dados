@@ -67,10 +67,10 @@ export default function Home() {
       icon: "💼",
       color: "from-green-500 to-green-600",
       items: [
-        { name: "Gestão de SKUs", href: "/executivo/skus", icon: "🏷️" },
-        { name: "Gestão de Preços", href: "/executivo/precos", icon: "💰" },
-        { name: "Controle de Estoque", href: "/executivo/estoque", icon: "📦" },
-        { name: "Controle de Cores", href: "/executivo/cores", icon: "🎨" }
+        { name: "SKUs", href: "/executivo/skus", icon: "🏷️" },
+        { name: "Preços", href: "/executivo/precos", icon: "💰" },
+        { name: "Estoque", href: "/executivo/estoque", icon: "📦" },
+        { name: "Cores", href: "/executivo/cores", icon: "🎨" }
       ]
     },
     {
