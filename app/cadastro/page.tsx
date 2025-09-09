@@ -27,6 +27,12 @@ interface EstatisticasQualidade {
     descricao: string;
     itens: string[];
   }>;
+  skusRevisao?: {
+    totalPendente: number;
+    criadosSistema: number;
+    criadosUpload: number;
+    criadosIndividual: number;
+  };
 }
 
 export default function Cadastro() {
@@ -46,6 +52,19 @@ export default function Cadastro() {
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
+          // Buscar estatísticas de SKUs para revisão
+          const skusResponse = await fetch('/api/skus/revisao?limit=1');
+          if (skusResponse.ok) {
+            const skusResult = await skusResponse.json();
+            if (skusResult.success) {
+              result.data.skusRevisao = {
+                totalPendente: skusResult.data.total,
+                criadosSistema: skusResult.data.estatisticas.find((e: any) => e.origemCriacao === 'sistema' && e.statusRevisao === 'pendente_revisao')?._count?.id || 0,
+                criadosUpload: skusResult.data.estatisticas.find((e: any) => e.origemCriacao === 'upload_massa' && e.statusRevisao === 'pendente_revisao')?._count?.id || 0,
+                criadosIndividual: skusResult.data.estatisticas.find((e: any) => e.origemCriacao === 'individual' && e.statusRevisao === 'pendente_revisao')?._count?.id || 0
+              };
+            }
+          }
           setEstatisticas(result.data);
         } else {
           // Fallback para dados estáticos em caso de erro
@@ -158,6 +177,16 @@ export default function Cadastro() {
       },
       {
         tipo: 'aviso',
+        titulo: 'SKUs Aguardando Revisão',
+        descricao: 'Novos SKUs foram criados automaticamente e precisam ser revisados',
+        itens: [
+          `${estatisticas?.skusRevisao?.totalPendente || 0} SKUs pendentes de revisão`,
+          `${estatisticas?.skusRevisao?.criadosSistema || 0} criados pelo sistema`,
+          `${estatisticas?.skusRevisao?.criadosUpload || 0} criados por upload em massa`
+        ]
+      },
+      {
+        tipo: 'aviso',
         titulo: 'Dados Desatualizados',
         descricao: 'Alguns registros não são atualizados há mais de 6 meses',
         itens: [
@@ -166,7 +195,13 @@ export default function Cadastro() {
           'Cores: 3 registros desatualizados'
         ]
       }
-    ]
+    ],
+    skusRevisao: {
+      totalPendente: 15,
+      criadosSistema: 12,
+      criadosUpload: 3,
+      criadosIndividual: 0
+    }
   });
 
   const modulos = [
@@ -225,6 +260,14 @@ export default function Cadastro() {
       icone: Building2,
       cor: 'from-teal-500 to-teal-600',
       stats: estatisticas?.detalhesPorTabela.find(t => t.nome === 'Empresas') || { total: 0, completos: 0, incompletos: 0 }
+    },
+    {
+      nome: "Carregar Bases",
+      href: "/cadastro/carregar-bases",
+      descricao: "Importar dados de estoque dos arquivos base",
+      icone: Database,
+      cor: 'from-emerald-500 to-emerald-600',
+      stats: { total: 0, completos: 0, incompletos: 0 } // Dados dinâmicos podem ser adicionados depois
     }
   ];
 
@@ -323,17 +366,27 @@ export default function Cadastro() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+              <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total de Registros</p>
-                    <p className="text-3xl font-bold text-gray-900">{estatisticas.totalRegistros.toLocaleString()}</p>
+                    <p className="text-sm font-medium text-gray-600">SKUs para Revisão</p>
+                    <p className="text-3xl font-bold text-gray-900">{estatisticas.skusRevisao?.totalPendente || 0}</p>
                   </div>
-                  <Users className="h-8 w-8 text-purple-500" />
+                  <AlertTriangle className="h-8 w-8 text-orange-500" />
                 </div>
-                <div className="mt-4 flex items-center text-sm">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
-                  <span className="text-green-600">{estatisticas.registrosCompletos.toLocaleString()} completos</span>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center text-sm">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                    <span className="text-gray-600">Sistema: {estatisticas.skusRevisao?.criadosSistema || 0}</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                    <span className="text-gray-600">Upload: {estatisticas.skusRevisao?.criadosUpload || 0}</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                    <span className="text-gray-600">Individual: {estatisticas.skusRevisao?.criadosIndividual || 0}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -571,7 +624,7 @@ export default function Cadastro() {
         {/* Ações Rápidas */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Ações Rápidas</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Link
               href="/cadastro/skus/novo"
               className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
@@ -586,6 +639,32 @@ export default function Cadastro() {
             </Link>
 
             <Link
+              href="/cadastro/skus/revisao"
+              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <div className="flex items-center">
+                <AlertTriangle size={24} className="mr-3" />
+                <div>
+                  <h3 className="text-lg font-bold">Revisar SKUs</h3>
+                  <p className="text-orange-100">Aprovar SKUs criados</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href="/cadastro/carregar-bases"
+              className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <div className="flex items-center">
+                <Database size={24} className="mr-3" />
+                <div>
+                  <h3 className="text-lg font-bold">Carregar Bases</h3>
+                  <p className="text-emerald-100">Importar dados de estoque</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
               href="/cadastro/empresas/novo"
               className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
@@ -594,19 +673,6 @@ export default function Cadastro() {
                 <div>
                   <h3 className="text-lg font-bold">Nova Empresa</h3>
                   <p className="text-teal-100">Cadastrar fornecedor</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              href="/cadastro/clientes/novo"
-              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              <div className="flex items-center">
-                <Home size={24} className="mr-3" />
-                <div>
-                  <h3 className="text-lg font-bold">Novo Cliente</h3>
-                  <p className="text-orange-100">Cadastrar novo cliente</p>
                 </div>
               </div>
             </Link>

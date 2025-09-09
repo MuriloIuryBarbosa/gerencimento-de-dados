@@ -54,7 +54,7 @@ export default function CSVUpload({ title, moduleName, availableFields, onImport
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      complete: (results) => {
+      complete: (results: Papa.ParseResult<any>) => {
         if (results.errors.length > 0) {
           alert('Erro ao processar o arquivo CSV: ' + results.errors[0].message);
           return;
@@ -67,7 +67,7 @@ export default function CSVUpload({ title, moduleName, availableFields, onImport
         // Inicializar mapeamentos automáticos
         const autoMappings: ColumnMapping[] = [];
         availableFields.forEach(field => {
-          const matchingHeader = results.meta.fields?.find(header =>
+          const matchingHeader = results.meta.fields?.find((header: string) =>
             header.toLowerCase().includes(field.key.toLowerCase()) ||
             header.toLowerCase().includes(field.label.toLowerCase())
           );

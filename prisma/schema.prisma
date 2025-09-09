@@ -28,6 +28,7 @@ model Usuario {
   empresa       Empresa?  @relation(fields: [empresaId], references: [id])
   permissoes    UsuarioPermissao[]
   movimentacoes MovimentacaoEstoque[]
+  arquivosProcessados ArquivoEstoqueProcessado[]
 
   @@map("usuarios")
 }
@@ -97,6 +98,19 @@ model SKU {
   nome            String
   descricao       String?
   categoria       String?
+
+  // Campos estruturais do SKU
+  familia         String?  // Família do produto
+  cor             String?  // Cor do produto
+  tamanho         String?  // Tamanho do produto
+
+  // Controle de criação e qualidade
+  origemCriacao   String   @default("individual") // "individual", "upload_massa", "sistema"
+  statusRevisao   String   @default("revisado") // "pendente_revisao", "revisado", "rejeitado"
+  revisadoPor     Int?     // ID do usuário que revisou
+  dataRevisao     DateTime?
+  observacoesRevisao String?
+
   unidade         String   @default("UN")
   precoVenda      Decimal?
   custoMedio      Decimal?
@@ -111,6 +125,8 @@ model SKU {
   itensProforma   ItemProforma[]
   estoques        Estoque[]
   movimentacoes   MovimentacaoEstoque[]
+  itensEstoque    EstoqueBase[] // Relacionamento com dados de estoque carregados
+  estoqueConsolidado EstoqueConsolidado?
 
   @@map("skus")
 }
@@ -499,4 +515,101 @@ model LogSistema {
   createdAt   DateTime @default(now())
 
   @@map("logs_sistema")
+}
+
+// =====================================================
+// TABELAS PARA CARREGAMENTO DE BASES DE ESTOQUE
+// =====================================================
+
+model LocalizacaoEstoque {
+  id              Int      @id @default(autoincrement())
+  codigo          String   @unique // Ex: "1.01.A.002"
+  descricao       String?
+  empresa         String   // FATEX, CORTTEX, etc.
+  armazem         String?  // Código do armazem
+  centroResponsavel String? // Centro responsável
+  ativo           Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  itens           EstoqueBase[]
+
+  @@map("localizacoes_estoque")
+}
+
+model EstoqueBase {
+  id                    Int         @id @default(autoincrement())
+  localizacaoId         Int
+  codigoProduto         String      // CODIGO do arquivo
+  skuId                 String?     // Relacionamento com SKU (pode ser null se SKU ainda não foi criado)
+  apelidoFamilia        String      // APELIDO FAMILIA
+  qualidade             String?     // QUAL
+  qmm                   String?     // QMM
+  cor                   String?     // COR
+  quantidade            Decimal     // QTDE
+  descricaoCor          String?     // DESC.COR
+  tamanho               String?     // TAM
+  tamanhoDetalhado      String?     // TAMD
+  embalagemVolume       String?     // EMBALAGEM/VOL(s)
+  unidade               String      // UN (MT, KG, PC)
+  pesoLiquido           Decimal?    // PESO LIQ
+  pesoBruto             Decimal?    // PESO BRUTO
+  empresa               String      // Empresa do arquivo
+  dataProcessamento     DateTime    @default(now())
+  arquivoOrigem         String      // Nome do arquivo de origem
+  lote                  String?     // Para controle de lotes
+  dataValidade          DateTime?
+  status                String      @default("Ativo")
+  observacoes           String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  localizacao           LocalizacaoEstoque @relation(fields: [localizacaoId], references: [id])
+  sku                   SKU?        @relation(fields: [skuId], references: [id])
+
+  @@map("estoque_base")
+}
+
+model ArquivoEstoqueProcessado {
+  id                Int      @id @default(autoincrement())
+  nomeArquivo       String   @unique
+  empresa           String
+  dataProcessamento DateTime @default(now())
+  totalRegistros    Int      @default(0)
+  registrosValidos  Int      @default(0)
+  registrosInvalidos Int     @default(0)
+  status            String   @default("Processando") // Processando, Concluido, Erro
+  erros             String?  // JSON com lista de erros
+  usuarioId         Int?
+  observacoes       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  usuario           Usuario? @relation(fields: [usuarioId], references: [id])
+
+  @@map("arquivos_estoque_processados")
+}
+
+// =====================================================
+// TABELA PARA CONTROLE DE ESTOQUE CONSOLIDADO POR SKU
+// =====================================================
+
+model EstoqueConsolidado {
+  id                    Int         @id @default(autoincrement())
+  skuId                 String      @unique
+  quantidadeTotal       Decimal     @default(0) // Quantidade total em estoque
+  quantidadeReservada   Decimal     @default(0) // Quantidade reservada
+  quantidadeDisponivel  Decimal     @default(0) // Quantidade disponível
+  unidade               String      @default("UN")
+  valorTotalEstoque     Decimal?    // Valor total do estoque
+  custoMedio            Decimal?    // Custo médio ponderado
+  ultimaAtualizacao     DateTime    @default(now())
+  status                String      @default("Ativo")
+  observacoes           String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  sku                   SKU @relation(fields: [skuId], references: [id])
+
+  @@map("estoque_consolidado")
 }
