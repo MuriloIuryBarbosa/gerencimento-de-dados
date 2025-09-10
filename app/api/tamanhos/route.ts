@@ -18,7 +18,6 @@ export async function GET() {
         }
       },
       orderBy: [
-        { ordem: 'asc' },
         { nome: 'asc' }
       ]
     })
@@ -41,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { codigo, nome, descricao, ordem, ativo = true } = body
+    const { codigo, nome, descricao, ativo = true } = body
 
     // Validações
     if (!codigo || !nome) {
@@ -68,7 +67,6 @@ export async function POST(request: NextRequest) {
         codigo,
         nome,
         descricao,
-        ordem: ordem ? parseInt(ordem) : null,
         ativo
       }
     })

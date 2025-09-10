@@ -25,25 +25,26 @@ export async function GET() {
     });
 
     // Produtos com baixo estoque (abaixo do mínimo)
+    const estoqueMinimoResult = await prisma.estoqueConsolidado.findFirst({
+      select: { sku: { select: { estoqueMinimo: true } } }
+    });
+    const estoqueMinimo = estoqueMinimoResult?.sku?.estoqueMinimo || 0;
+
     const produtosBaixoEstoque = await prisma.estoqueConsolidado.count({
       where: {
         quantidadeTotal: {
-          lt: prisma.estoqueConsolidado.findFirst({
-            select: { sku: { select: { estoqueMinimo: true } } }
-          }).then(result => result?.sku?.estoqueMinimo || 0)
+          lt: estoqueMinimo
         }
       }
     });
 
     // Cores cadastradas
     const totalCores = await prisma.cor.count();
-    const coresAtivas = await prisma.cor.count({
+    const coresAtivas = await prisma.sKU.count({
       where: {
-        id: {
-          in: await prisma.sKU.findMany({
-            where: { ativo: true },
-            select: { cor: true }
-          }).then(results => results.map(r => r.cor).filter(Boolean))
+        ativo: true,
+        cor: {
+          not: null
         }
       }
     });

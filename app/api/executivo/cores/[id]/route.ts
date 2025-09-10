@@ -45,10 +45,11 @@ function determinarCategoria(corNome: string): string {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const corId = params.id;
+    const { id } = await params;
+    const corId = id;
 
     // Buscar SKUs relacionados à cor
     const todosSkus = await prisma.sKU.findMany({

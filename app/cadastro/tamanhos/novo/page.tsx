@@ -16,7 +16,6 @@ export default function NovoTamanho() {
     codigo: "",
     nome: "",
     descricao: "",
-    ordem: "",
     ativo: true
   });
 
@@ -40,10 +39,6 @@ export default function NovoTamanho() {
       setError('Nome do tamanho é obrigatório');
       return false;
     }
-    if (!formData.ordem || parseInt(formData.ordem) < 0) {
-      setError('Ordem deve ser um número positivo');
-      return false;
-    }
     return true;
   };
 
@@ -62,10 +57,7 @@ export default function NovoTamanho() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          ordem: parseInt(formData.ordem)
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
@@ -155,21 +147,6 @@ export default function NovoTamanho() {
                     value={formData.nome}
                     onChange={(e) => handleInputChange('nome', e.target.value)}
                     placeholder="Ex: Pequeno, Médio, Grande"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label htmlFor="ordem">Ordem *</Label>
-                  <Input
-                    id="ordem"
-                    type="number"
-                    value={formData.ordem}
-                    onChange={(e) => handleInputChange('ordem', e.target.value)}
-                    placeholder="Ex: 1, 2, 3"
-                    min="0"
                     required
                   />
                 </div>

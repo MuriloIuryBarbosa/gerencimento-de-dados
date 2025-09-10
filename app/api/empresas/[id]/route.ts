@@ -5,10 +5,11 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const empresaId = parseInt(params.id);
+    const { id } = await params;
+    const empresaId = parseInt(id);
 
     if (isNaN(empresaId)) {
       return NextResponse.json(
