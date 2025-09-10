@@ -10,42 +10,84 @@ export default function UploadSKUs() {
   const [isImporting, setIsImporting] = useState(false);
 
   const availableFields = [
-    { key: 'id', label: 'Código SKU', required: true, type: 'string' as const },
-    { key: 'nome', label: 'Nome do Produto', required: true, type: 'string' as const },
+    { key: 'id', label: 'CHAVE SKU', required: true, type: 'string' as const },
+    { key: 'nome', label: 'Nome do Produto', required: false, type: 'string' as const },
+    { key: 'unegNome', label: 'Uneg', required: false, type: 'string' as const },
+    { key: 'unegCodigo', label: 'Codigo Uneg', required: false, type: 'string' as const },
+    { key: 'familiaCodigo', label: 'Codigo Familia', required: false, type: 'string' as const },
+    { key: 'familiaNome', label: 'Familia', required: false, type: 'string' as const },
+    { key: 'corCodigo', label: 'Codigo Cor', required: false, type: 'string' as const },
+    { key: 'corNome', label: 'Cor', required: false, type: 'string' as const },
+    { key: 'tamanhoCodigo', label: 'Codigo Tam', required: false, type: 'string' as const },
+    { key: 'tamanhoNome', label: 'Tamanho', required: false, type: 'string' as const },
+    { key: 'estoqueMinimo', label: 'PE', required: false, type: 'number' as const },
+    { key: 'ativo', label: 'Ativo', required: false, type: 'boolean' as const },
+    { key: 'curvaOrdem', label: 'CURVA ORDEM', required: false, type: 'string' as const },
+    { key: 'curvaOrdemCurta', label: 'CURVA ORDEM CURTA', required: false, type: 'string' as const },
+    { key: 'subgrupo', label: 'Subgrupo', required: false, type: 'string' as const },
+    { key: 'item', label: 'ITEM', required: false, type: 'string' as const },
+    { key: 'destino', label: 'Destino', required: false, type: 'string' as const },
+    { key: 'leadTimeReposicao', label: 'Lead_time_reposicao', required: false, type: 'number' as const },
+    { key: 'unidade', label: 'Unidade', required: true, type: 'string' as const },
+    { key: 'radarPlanejamento', label: 'Radar_Planejamento', required: false, type: 'string' as const },
+    { key: 'gramatura', label: 'Gramatura', required: false, type: 'string' as const },
+    { key: 'exclusivo', label: 'Exclusivo', required: false, type: 'string' as const },
     { key: 'descricao', label: 'Descrição', required: false, type: 'string' as const },
     { key: 'categoria', label: 'Categoria', required: false, type: 'string' as const },
-    { key: 'unidade', label: 'Unidade de Medida', required: true, type: 'string' as const },
     { key: 'precoVenda', label: 'Preço de Venda', required: false, type: 'number' as const },
     { key: 'custoMedio', label: 'Custo Médio', required: false, type: 'number' as const },
-    { key: 'estoqueMinimo', label: 'Estoque Mínimo', required: true, type: 'number' as const },
-    { key: 'estoqueMaximo', label: 'Estoque Máximo', required: false, type: 'number' as const },
-    { key: 'ativo', label: 'Ativo', required: false, type: 'boolean' as const }
+    { key: 'estoqueMaximo', label: 'Estoque Máximo', required: false, type: 'number' as const }
   ];
 
   const sampleData = [
     {
-      id: 'SKU001',
-      nome: 'Produto Exemplo 1',
-      descricao: 'Descrição do produto exemplo',
-      categoria: 'Categoria A',
-      unidade: 'UN',
+      id: '4565380',
+      nome: 'MICROFIBRA 65G/M2 2.40M ESTAMPADA',
+      unegNome: 'MICROFIBRA',
+      unegCodigo: '55',
+      familiaCodigo: '4565',
+      familiaNome: 'MICROFIBRA 65G/M2 2.40M ESTAMPADA',
+      corCodigo: '38',
+      corNome: 'ESTAMPADA',
+      tamanhoCodigo: '0',
+      tamanhoNome: '0',
+      estoqueMinimo: 0,
+      ativo: true,
+      subgrupo: 'MICROFIBRA ESTAMPADA',
+      item: 'ARTIGO DE PRODUÇÃO',
+      destino: 'PRODUÇÃO',
+      leadTimeReposicao: 209,
+      unidade: 'MT',
+      gramatura: '65G/M2',
+      descricao: 'Microfibra estampada para produção',
+      categoria: 'Tecido',
       precoVenda: 29.90,
       custoMedio: 15.50,
-      estoqueMinimo: 10,
-      estoqueMaximo: 100,
-      ativo: true
+      estoqueMaximo: 100
     },
     {
-      id: 'SKU002',
-      nome: 'Produto Exemplo 2',
-      descricao: 'Outro produto exemplo',
-      categoria: 'Categoria B',
-      unidade: 'KG',
+      id: '109810',
+      nome: 'VOIL 3.00M',
+      unegNome: 'DECORACAO',
+      unegCodigo: '25',
+      familiaCodigo: '1098',
+      familiaNome: 'VOIL 3.00M',
+      corCodigo: '1',
+      corNome: 'BRANCO',
+      tamanhoCodigo: '0',
+      tamanhoNome: '0',
+      estoqueMinimo: 0,
+      ativo: true,
+      subgrupo: 'VOIL LISO IMPORTADO',
+      item: 'VENDA',
+      destino: 'VENDA',
+      leadTimeReposicao: 164,
+      unidade: 'MT',
+      descricao: 'Voil branco para decoração',
+      categoria: 'Tecido',
       precoVenda: 45.00,
       custoMedio: 22.00,
-      estoqueMinimo: 5,
-      estoqueMaximo: 50,
-      ativo: true
+      estoqueMaximo: 50
     }
   ];
 
@@ -119,18 +161,18 @@ export default function UploadSKUs() {
               <h4 className="font-medium text-gray-900 mb-2">Campos Obrigatórios</h4>
               <ul className="text-sm text-gray-600 space-y-1">
                 <li>• Código SKU (único)</li>
-                <li>• Nome do Produto</li>
                 <li>• Unidade de Medida</li>
-                <li>• Estoque Mínimo</li>
               </ul>
             </div>
             <div>
               <h4 className="font-medium text-gray-900 mb-2">Campos Opcionais</h4>
               <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Nome do Produto</li>
                 <li>• Descrição</li>
                 <li>• Categoria</li>
                 <li>• Preço de Venda</li>
                 <li>• Custo Médio</li>
+                <li>• Estoque Mínimo</li>
                 <li>• Estoque Máximo</li>
                 <li>• Status Ativo</li>
               </ul>

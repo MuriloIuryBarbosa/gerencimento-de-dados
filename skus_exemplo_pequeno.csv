@@ -1,0 +1,6 @@
+id,nome,unidade,ativo,estoqueMinimo
+SKU001,Microfibra 65G/M2 2.40M,MT,true,10
+SKU002,Voil 3.00M Branco,MT,true,5
+SKU003,Tecido Algodão 1.50M,MT,false,0
+SKU004,Malha Poliéster 2.00M,MT,true,8
+SKU005,Seda Natural 1.80M,MT,true,3

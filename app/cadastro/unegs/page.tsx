@@ -5,9 +5,9 @@ import { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shirt, Plus, Search, Edit, Trash2, RefreshCw, Upload } from 'lucide-react';
+import { Building2, Plus, Search, Edit, Trash2, RefreshCw, Upload } from 'lucide-react';
 
-interface Familia {
+interface UNEG {
   id: number;
   codigo: string;
   nome: string;
@@ -15,51 +15,51 @@ interface Familia {
   ativo: boolean;
 }
 
-export default function Familias() {
-  const [familias, setFamilias] = useState<Familia[]>([]);
+export default function UNEGs() {
+  const [unegs, setUneg] = useState<UNEG[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const fetchFamilias = async () => {
+    const fetchUneg = async () => {
       try {
-        const response = await fetch('/api/familias');
+        const response = await fetch('/api/unegs');
         if (response.ok) {
           const data = await response.json();
-          setFamilias(data);
+          setUneg(data);
         }
       } catch (error) {
-        console.error('Erro ao buscar famílias:', error);
+        console.error('Erro ao buscar UNEGs:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFamilias();
+    fetchUneg();
   }, []);
 
-  const filteredFamilias = familias.filter(familia =>
-    familia.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    familia.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    familia.descricao?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUneg = unegs.filter(uneg =>
+    uneg.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    uneg.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    uneg.descricao?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Tem certeza que deseja excluir esta família?')) return;
+    if (!confirm('Tem certeza que deseja excluir esta UNEG?')) return;
 
     try {
-      const response = await fetch(`/api/familias/${id}`, {
+      const response = await fetch(`/api/unegs/${id}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
-        setFamilias(familias.filter(f => f.id !== id));
+        setUneg(unegs.filter(u => u.id !== id));
       } else {
-        alert('Erro ao excluir família');
+        alert('Erro ao excluir UNEG');
       }
     } catch (error) {
-      console.error('Erro ao excluir família:', error);
-      alert('Erro ao excluir família');
+      console.error('Erro ao excluir UNEG:', error);
+      alert('Erro ao excluir UNEG');
     }
   };
 
@@ -68,7 +68,7 @@ export default function Familias() {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <RefreshCw className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
-          <p className="text-gray-600">Carregando famílias...</p>
+          <p className="text-gray-600">Carregando UNEGs...</p>
         </div>
       </div>
     );
@@ -77,26 +77,26 @@ export default function Familias() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="bg-gradient-to-r from-cyan-600 to-cyan-700 shadow-lg">
+      <header className="bg-gradient-to-r from-green-600 to-green-700 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
               <div className="bg-white/20 p-3 rounded-full">
-                <Shirt size={32} className="text-white" />
+                <Building2 size={32} className="text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white">Famílias</h1>
-                <p className="text-cyan-100">Gerenciar famílias de produtos</p>
+                <h1 className="text-3xl font-bold text-white">UNEGs</h1>
+                <p className="text-green-100">Gerenciar unidades de negócio</p>
               </div>
             </div>
             <div className="flex gap-4">
-              <Link href="/cadastro/familias/novo">
-                <Button className="bg-white text-cyan-600 hover:bg-cyan-50">
+              <Link href="/cadastro/unegs/novo">
+                <Button className="bg-white text-green-600 hover:bg-green-50">
                   <Plus className="h-4 w-4 mr-2" />
-                  Nova Família
+                  Nova UNEG
                 </Button>
               </Link>
-              <Link href="/cadastro/familias/upload">
+              <Link href="/cadastro/unegs/upload">
                 <Button variant="outline">
                   <Upload className="h-4 w-4 mr-2" />
                   Upload CSV
@@ -120,7 +120,7 @@ export default function Familias() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <Input
               type="text"
-              placeholder="Buscar famílias..."
+              placeholder="Buscar UNEGs..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -128,22 +128,22 @@ export default function Familias() {
           </div>
         </div>
 
-        {/* Famílias Grid */}
-        {filteredFamilias.length === 0 ? (
+        {/* UNEGs Grid */}
+        {filteredUneg.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <Shirt className="h-12 w-12 text-gray-400 mb-4" />
+              <Building2 className="h-12 w-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {searchTerm ? 'Nenhuma família encontrada' : 'Nenhuma família cadastrada'}
+                {searchTerm ? 'Nenhuma UNEG encontrada' : 'Nenhuma UNEG cadastrada'}
               </h3>
               <p className="text-gray-500 text-center mb-4">
-                {searchTerm ? 'Tente ajustar sua busca' : 'Comece criando sua primeira família'}
+                {searchTerm ? 'Tente ajustar sua busca' : 'Comece criando sua primeira UNEG'}
               </p>
               {!searchTerm && (
-                <Link href="/cadastro/familias/novo">
+                <Link href="/cadastro/unegs/novo">
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Criar Primeira Família
+                    Criar Primeira UNEG
                   </Button>
                 </Link>
               )}
@@ -151,28 +151,28 @@ export default function Familias() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredFamilias.map((familia) => (
-              <Card key={familia.id} className="hover:shadow-lg transition-shadow">
+            {filteredUneg.map((uneg) => (
+              <Card key={uneg.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    <span className="text-lg">{familia.nome}</span>
+                    <span className="text-lg">{uneg.nome}</span>
                     <span className={`px-2 py-1 text-xs rounded-full ${
-                      familia.ativo
+                      uneg.ativo
                         ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {familia.ativo ? 'Ativo' : 'Inativo'}
+                      {uneg.ativo ? 'Ativo' : 'Inativo'}
                     </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
                     <p className="text-sm text-gray-600">
-                      <strong>Código:</strong> {familia.codigo}
+                      <strong>Código:</strong> {uneg.codigo}
                     </p>
-                    {familia.descricao && (
+                    {uneg.descricao && (
                       <p className="text-sm text-gray-600">
-                        <strong>Descrição:</strong> {familia.descricao}
+                        <strong>Descrição:</strong> {uneg.descricao}
                       </p>
                     )}
                   </div>
@@ -184,7 +184,7 @@ export default function Familias() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDelete(familia.id)}
+                      onClick={() => handleDelete(uneg.id)}
                       className="text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="h-4 w-4 mr-1" />

@@ -37,6 +37,11 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       '/cadastro/fornecedores': 'Cadastro',
       '/cadastro/transportadoras': 'Cadastro',
       '/cadastro/empresas': 'Cadastro',
+      '/cadastro/familias': 'Cadastro',
+      '/cadastro/tamanhos': 'Cadastro',
+      '/cadastro/unegs': 'Cadastro',
+      '/cadastro/depositos': 'Cadastro',
+      '/cadastro/estoque': 'Cadastro',
 
       // Executivo
       '/executivo': 'Executivo',
@@ -44,10 +49,6 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       '/executivo/precos': 'Executivo',
       '/executivo/estoque': 'Executivo',
       '/executivo/cores': 'Executivo',
-      '/executivo/familias': 'Executivo',
-      '/executivo/tamanhos': 'Executivo',
-      '/executivo/uneg': 'Executivo',
-      '/executivo/depositos': 'Executivo',
 
       // Cubagem
       '/cubagem': 'Cubagem',
@@ -150,6 +151,36 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
           href: "/cadastro/empresas",
           icon: Home,
           description: "Gerenciar empresas do sistema"
+        },
+        {
+          name: "Famílias",
+          href: "/cadastro/familias",
+          icon: Package,
+          description: "Gerenciar famílias de produtos"
+        },
+        {
+          name: "Tamanhos",
+          href: "/cadastro/tamanhos",
+          icon: Ruler,
+          description: "Gerenciar tamanhos de produtos"
+        },
+        {
+          name: "UNEGs",
+          href: "/cadastro/unegs",
+          icon: Building2,
+          description: "Gerenciar unidades de negócio"
+        },
+        {
+          name: "Depósitos",
+          href: "/cadastro/depositos",
+          icon: Warehouse,
+          description: "Gerenciar depósitos e centros de distribuição"
+        },
+        {
+          name: "Estoque",
+          href: "/cadastro/estoque",
+          icon: Archive,
+          description: "Gerenciar controle de estoque"
         }
       ]
     },
@@ -182,30 +213,6 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
           href: "/executivo/cores",
           icon: Palette,
           description: "Gerenciar cores"
-        },
-        {
-          name: "Famílias",
-          href: "/executivo/familias",
-          icon: Package,
-          description: "Gerenciar famílias de produtos"
-        },
-        {
-          name: "Tamanhos",
-          href: "/executivo/tamanhos",
-          icon: Ruler,
-          description: "Gerenciar tamanhos de produtos"
-        },
-        {
-          name: "UNEG",
-          href: "/executivo/uneg",
-          icon: Building2,
-          description: "Gerenciar unidades de negócio"
-        },
-        {
-          name: "Depósitos",
-          href: "/executivo/depositos",
-          icon: Warehouse,
-          description: "Gerenciar depósitos e centros de distribuição"
         }
       ]
     },

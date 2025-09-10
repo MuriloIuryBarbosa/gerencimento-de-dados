@@ -1,0 +1,3 @@
+codigo_familia,codigo_tamanho,codigo_uneg,codigo_sku,descricao,preco_venda,estoque_minimo
+FAM001,TAM001,UNEG001,SKU001,Produto Teste 1,100.00,10
+FAM002,TAM002,UNEG002,SKU002,Produto Teste 2,200.00,20

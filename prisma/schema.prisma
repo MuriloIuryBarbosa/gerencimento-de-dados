@@ -96,7 +96,7 @@ model ItemOrdemCompra {
 
 model SKU {
   id              String   @id
-  nome            String
+  nome            String?  // Agora opcional
   descricao       String?
   categoria       String?
 
@@ -105,6 +105,25 @@ model SKU {
   cor             String?  // Cor do produto
   tamanhoId       Int?     // ID do tamanho
   unegId          Int?     // ID da UNEG (Unidade de negócio)
+
+  // Novos campos do CSV
+  unegNome        String?  // Nome da UNEG
+  unegCodigo      String?  // Código da UNEG
+  familiaCodigo   String?  // Código da família
+  familiaNome     String?  // Nome da família
+  corCodigo       String?  // Código da cor
+  corNome         String?  // Nome da cor
+  tamanhoCodigo   String?  // Código do tamanho
+  tamanhoNome     String?  // Nome do tamanho
+  curvaOrdem      String?  // CURVA ORDEM
+  curvaOrdemCurta String?  // CURVA ORDEM CURTA
+  subgrupo        String?  // Subgrupo
+  item            String?  // ITEM
+  destino         String?  // Destino
+  leadTimeReposicao Int?   // Lead_time_reposicao
+  radarPlanejamento String? // Radar_Planejamento
+  gramatura       String?  // Gramatura
+  exclusivo       String?  // Exclusivo
 
   // Controle de criação e qualidade
   origemCriacao   String   @default("individual") // "individual", "upload_massa", "sistema"

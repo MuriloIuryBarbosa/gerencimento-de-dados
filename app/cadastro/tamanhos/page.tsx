@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Ruler, Plus, Search, Edit, Trash2, RefreshCw } from 'lucide-react';
+import { Ruler, Plus, Search, Edit, Trash2, RefreshCw, Upload } from 'lucide-react';
 
 interface Tamanho {
   id: number;
@@ -90,12 +90,25 @@ export default function Tamanhos() {
                 <p className="text-pink-100">Gerenciar tamanhos disponíveis</p>
               </div>
             </div>
-            <Link href="/cadastro/tamanhos/novo">
-              <Button className="bg-white text-pink-600 hover:bg-pink-50">
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Tamanho
-              </Button>
-            </Link>
+            <div className="flex gap-4">
+              <Link href="/cadastro/tamanhos/novo">
+                <Button className="bg-white text-pink-600 hover:bg-pink-50">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Tamanho
+                </Button>
+              </Link>
+              <Link href="/cadastro/tamanhos/upload">
+                <Button variant="outline">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload CSV
+                </Button>
+              </Link>
+              <Link href="/cadastro">
+                <Button variant="outline">
+                  ← Voltar
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>

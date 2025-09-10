@@ -38,8 +38,8 @@ export default function SKUModal({ isOpen, onSave, onCancel }: SKUModalProps) {
     e.preventDefault();
 
     // Validação básica
-    if (!formData.id || !formData.nome) {
-      alert('ID e Nome são obrigatórios!');
+    if (!formData.id) {
+      alert('ID é obrigatório!');
       return;
     }
 
@@ -152,7 +152,7 @@ export default function SKUModal({ isOpen, onSave, onCancel }: SKUModalProps) {
 
             <div className="space-y-2">
               <Label htmlFor="nome" className="text-sm font-medium text-gray-700">
-                Nome do Produto *
+                Nome do Produto
               </Label>
               <Input
                 id="nome"
@@ -161,7 +161,6 @@ export default function SKUModal({ isOpen, onSave, onCancel }: SKUModalProps) {
                 onChange={(e) => handleInputChange('nome', e.target.value)}
                 placeholder="Nome completo do produto"
                 className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                required
               />
             </div>
           </div>

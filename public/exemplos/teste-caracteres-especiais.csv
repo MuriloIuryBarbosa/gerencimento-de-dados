@@ -1,0 +1,4 @@
+id,nome,descricao,categoria,unidade,precoVenda,estoqueMinimo,ativo,unegNome,familiaNome,corNome,tamanhoNome
+TEST001,Produto com Açúcar,Descrição com café e pão,Teste,UN,29.90,10,true,Unidade Nordeste,Família Açúcar,Cor Café,Tamanho Médio
+TEST002,Coração de Melão,Produto com coração e melão,Teste,UN,15.50,5,true,Unidade Sudeste,Família Frutas,Cor Verde,Tamanho Grande
+TEST003,Canção de Ninar,Descrição com cânticos,Teste,UN,45.00,2,true,Unidade Centro,Família Música,Cor Azul,Tamanho Pequeno

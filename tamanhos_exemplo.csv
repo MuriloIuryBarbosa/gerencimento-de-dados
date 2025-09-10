@@ -1,0 +1,8 @@
+codigo,nome,ordem,ativo
+PP,Pequeno Pequeno,1,true
+P,Pequeno,2,true
+M,Médio,3,true
+G,Grande,4,true
+GG,Grande Grande,5,true
+XG,Extra Grande,6,true
+XXG,Extra Extra Grande,7,false

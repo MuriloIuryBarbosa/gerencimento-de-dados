@@ -1,0 +1,3 @@
+CHAVE SKU,Nome do Produto,Codigo Familia,Familia,Codigo Uneg,Uneg,Unidade,Ativo,PE
+TEST001,Produto de Teste 1,9999,Família Teste,99,UNEG Teste,UN,true,10
+TEST002,Produto de Teste 2,8888,Família Teste 2,88,UNEG Teste 2,UN,true,20

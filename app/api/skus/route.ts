@@ -55,7 +55,25 @@ export async function POST(request: NextRequest) {
       precoVenda,
       custoMedio,
       estoqueMinimo,
-      estoqueMaximo
+      estoqueMaximo,
+      // Novos campos do CSV
+      unegNome,
+      unegCodigo,
+      familiaCodigo,
+      familiaNome,
+      corCodigo,
+      corNome,
+      tamanhoCodigo,
+      tamanhoNome,
+      curvaOrdem,
+      curvaOrdemCurta,
+      subgrupo,
+      item,
+      destino,
+      leadTimeReposicao,
+      radarPlanejamento,
+      gramatura,
+      exclusivo
     } = body;
 
     const sku = await prisma.sKU.create({
@@ -68,7 +86,25 @@ export async function POST(request: NextRequest) {
         precoVenda,
         custoMedio,
         estoqueMinimo,
-        estoqueMaximo
+        estoqueMaximo,
+        // Novos campos
+        unegNome,
+        unegCodigo,
+        familiaCodigo,
+        familiaNome,
+        corCodigo,
+        corNome,
+        tamanhoCodigo,
+        tamanhoNome,
+        curvaOrdem,
+        curvaOrdemCurta,
+        subgrupo,
+        item,
+        destino,
+        leadTimeReposicao,
+        radarPlanejamento,
+        gramatura,
+        exclusivo
       }
     });
 

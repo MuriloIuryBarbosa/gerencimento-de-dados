@@ -1,0 +1,6 @@
+sku,quantidade,localizacao,ativo
+SKU001,100,DEP001,true
+SKU002,250,DEP002,true
+SKU003,0,DEP003,false
+SKU004,75,DEP001,true
+SKU005,150,DEP004,true

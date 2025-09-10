@@ -1,0 +1,5 @@
+codigo,nome,localizacao,ativo
+DEP001,Depósito Central,São Paulo - SP,true
+DEP002,Depósito Norte,Rio de Janeiro - RJ,true
+DEP003,Depósito Sul,Porto Alegre - RS,false
+DEP004,Depósito Leste,Belo Horizonte - MG,true
