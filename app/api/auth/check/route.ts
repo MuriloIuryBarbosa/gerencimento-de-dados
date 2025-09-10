@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Mock database users for testing
+// Mock database users for development/testing
 const MOCK_USERS = [
   {
     id: 1,
@@ -13,6 +13,15 @@ const MOCK_USERS = [
     ultimoAcesso: new Date()
   }
 ];
+
+// Try to import Prisma, fallback to null if not available
+let prisma: any = null;
+try {
+  const { prisma: prismaClient } = require('../../../../lib/prisma');
+  prisma = prismaClient;
+} catch (error) {
+  console.log('Prisma client not available, using mock data for testing');
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,10 +37,40 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Verificar se o usuário existe e está ativo no mock
-    const usuario = MOCK_USERS.find(u => 
-      u.email.toLowerCase() === userEmail.toLowerCase() && u.ativo
-    );
+    let usuario = null;
+
+    // Try to use real database first, fallback to mock data
+    if (prisma) {
+      try {
+        console.log('Auth Check - Using Prisma database');
+        usuario = await prisma.usuario.findUnique({
+          where: {
+            email: userEmail.toLowerCase(),
+            ativo: true
+          },
+          select: {
+            id: true,
+            nome: true,
+            email: true,
+            cargo: true,
+            isAdmin: true,
+            isSuperAdmin: true,
+            ultimoAcesso: true
+          }
+        });
+      } catch (error) {
+        console.log('Auth Check - Prisma error, falling back to mock data:', error.message);
+        prisma = null;
+      }
+    }
+
+    // Fallback to mock data if Prisma is not available
+    if (!prisma) {
+      console.log('Auth Check - Using mock database');
+      usuario = MOCK_USERS.find(u => 
+        u.email.toLowerCase() === userEmail.toLowerCase() && u.ativo
+      );
+    }
 
     if (!usuario) {
       return NextResponse.json(
