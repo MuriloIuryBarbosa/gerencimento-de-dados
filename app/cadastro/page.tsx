@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Package, Palette, Truck, Home, ShoppingCart, Truck as TruckIcon, Building2, BarChart3, AlertTriangle, CheckCircle, Database, Users, TrendingUp, TrendingDown, XCircle, RefreshCw, Plus } from 'lucide-react';
+import { Package, Palette, Truck, Home, ShoppingCart, Truck as TruckIcon, Building2, BarChart3, AlertTriangle, CheckCircle, Database, Users, TrendingUp, TrendingDown, XCircle, RefreshCw, Plus, Shirt, Ruler } from 'lucide-react';
 
 interface EstatisticasQualidade {
   totalTabelas: number;
@@ -218,6 +218,22 @@ export default function Cadastro() {
       icone: Package,
       cor: 'from-blue-500 to-blue-600',
       stats: estatisticas?.detalhesPorTabela.find(t => t.nome === 'SKUs') || { total: 0, completos: 0, incompletos: 0 }
+    },
+    {
+      nome: 'Famílias',
+      href: '/cadastro/familias',
+      descricao: 'Gerenciar famílias de produtos',
+      icone: Shirt,
+      cor: 'from-cyan-500 to-cyan-600',
+      stats: estatisticas?.detalhesPorTabela.find(t => t.nome === 'Famílias') || { total: 0, completos: 0, incompletos: 0 }
+    },
+    {
+      nome: 'Tamanhos',
+      href: '/cadastro/tamanhos',
+      descricao: 'Gerenciar tamanhos disponíveis',
+      icone: Ruler,
+      cor: 'from-pink-500 to-pink-600',
+      stats: estatisticas?.detalhesPorTabela.find(t => t.nome === 'Tamanhos') || { total: 0, completos: 0, incompletos: 0 }
     },
     {
       nome: 'Cores',

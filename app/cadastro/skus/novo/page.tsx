@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Package, Save, X, AlertCircle, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { SearchableSelect } from '@/components/SearchableSelect';
 
 export default function NovoSKU() {
   const router = useRouter();
@@ -21,12 +22,65 @@ export default function NovoSKU() {
     precoVenda: "",
     custoMedio: "",
     estoqueMinimo: "",
-    estoqueMaximo: ""
+    estoqueMaximo: "",
+    familiaId: "",
+    tamanhoId: "",
+    corId: ""
   });
+
+  const [familias, setFamilias] = useState([]);
+  const [tamanhos, setTamanhos] = useState([]);
+  const [cores, setCores] = useState([]);
+  const [loadingOptions, setLoadingOptions] = useState(true);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    const loadOptions = async () => {
+      try {
+        const [familiasRes, tamanhosRes, coresRes] = await Promise.all([
+          fetch('/api/familias'),
+          fetch('/api/tamanhos'),
+          fetch('/api/cores')
+        ]);
+
+        if (familiasRes.ok) {
+          const familiasData = await familiasRes.json();
+          setFamilias(familiasData.map((f: any) => ({
+            id: f.id,
+            label: `${f.codigo} - ${f.nome}`,
+            value: f.id.toString()
+          })));
+        }
+
+        if (tamanhosRes.ok) {
+          const tamanhosData = await tamanhosRes.json();
+          setTamanhos(tamanhosData.map((t: any) => ({
+            id: t.id,
+            label: `${t.codigo} - ${t.nome}`,
+            value: t.id.toString()
+          })));
+        }
+
+        if (coresRes.ok) {
+          const coresData = await coresRes.json();
+          setCores(coresData.map((c: any) => ({
+            id: c.id,
+            label: `${c.nome}${c.codigoHex ? ` (${c.codigoHex})` : ''}`,
+            value: c.id.toString()
+          })));
+        }
+      } catch (error) {
+        console.error('Erro ao carregar opções:', error);
+      } finally {
+        setLoadingOptions(false);
+      }
+    };
+
+    loadOptions();
+  }, []);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -85,7 +139,10 @@ export default function NovoSKU() {
         precoVenda: formData.precoVenda ? parseFloat(formData.precoVenda) : null,
         custoMedio: formData.custoMedio ? parseFloat(formData.custoMedio) : null,
         estoqueMinimo: formData.estoqueMinimo ? parseInt(formData.estoqueMinimo) : null,
-        estoqueMaximo: formData.estoqueMaximo ? parseInt(formData.estoqueMaximo) : null
+        estoqueMaximo: formData.estoqueMaximo ? parseInt(formData.estoqueMaximo) : null,
+        familiaId: formData.familiaId ? parseInt(formData.familiaId) : null,
+        tamanhoId: formData.tamanhoId ? parseInt(formData.tamanhoId) : null,
+        corId: formData.corId ? parseInt(formData.corId) : null
       };
 
       const response = await fetch('/api/skus', {
@@ -114,7 +171,10 @@ export default function NovoSKU() {
         precoVenda: "",
         custoMedio: "",
         estoqueMinimo: "",
-        estoqueMaximo: ""
+        estoqueMaximo: "",
+        familiaId: "",
+        tamanhoId: "",
+        corId: ""
       });
 
       // Redirect after success
@@ -220,6 +280,48 @@ export default function NovoSKU() {
                   className="min-h-24 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   rows={4}
                 />
+              </div>
+
+              {/* Família, Tamanho e Cor */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Família
+                  </Label>
+                  <SearchableSelect
+                    options={familias}
+                    value={formData.familiaId}
+                    onChange={(value) => handleInputChange('familiaId', value)}
+                    placeholder="Selecione uma família"
+                    loading={loadingOptions}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Tamanho
+                  </Label>
+                  <SearchableSelect
+                    options={tamanhos}
+                    value={formData.tamanhoId}
+                    onChange={(value) => handleInputChange('tamanhoId', value)}
+                    placeholder="Selecione um tamanho"
+                    loading={loadingOptions}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Cor
+                  </Label>
+                  <SearchableSelect
+                    options={cores}
+                    value={formData.corId}
+                    onChange={(value) => handleInputChange('corId', value)}
+                    placeholder="Selecione uma cor"
+                    loading={loadingOptions}
+                  />
+                </div>
               </div>
 
               {/* Categoria e Unidade */}
