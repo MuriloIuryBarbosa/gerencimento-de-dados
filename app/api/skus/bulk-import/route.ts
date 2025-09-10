@@ -11,6 +11,18 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   try {
+    // Verificar se o Prisma Client está inicializado
+    console.log('Verificando inicialização do Prisma Client...');
+    if (!prisma) {
+      throw new Error('Prisma Client não está inicializado');
+    }
+    console.log('✅ Prisma Client inicializado');
+
+    // Testar conexão com o banco
+    console.log('Testando conexão com o banco...');
+    await prisma.$connect();
+    console.log('✅ Conexão com banco estabelecida');
+
     // Timeout de 5 minutos para a operação completa
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Timeout: Operação demorou mais de 5 minutos')), 300000);
@@ -72,9 +84,11 @@ export async function POST(request: NextRequest) {
             // Verificar se SKU já existe (apenas se ID foi fornecido e não está vazio)
             if (row.id && typeof row.id === 'string' && row.id.trim() !== '') {
               try {
+                console.log(`Verificando duplicata para SKU: ${row.id.trim()}`);
                 const existingSKU = await prisma.sKU.findUnique({
                   where: { id: row.id.trim() }
                 });
+                console.log(`Resultado da verificação: ${existingSKU ? 'Encontrado' : 'Não encontrado'}`);
 
                 if (existingSKU) {
                   results.duplicates.push(`Linha ${rowNumber}: SKU '${row.id}' já existe`);
@@ -160,6 +174,7 @@ export async function POST(request: NextRequest) {
             if (skuData.familiaCodigo) {
               console.log(`Tentando resolver família: ${skuData.familiaCodigo}`);
               try {
+                console.log('Executando query para família...');
                 const familia = await prisma.familia.findFirst({
                   where: {
                     OR: [
@@ -168,6 +183,7 @@ export async function POST(request: NextRequest) {
                     ]
                   }
                 });
+                console.log(`Query de família executada: ${familia ? 'Encontrada' : 'Não encontrada'}`);
 
                 if (familia) {
                   skuData.familiaId = familia.id;
@@ -176,6 +192,7 @@ export async function POST(request: NextRequest) {
                 } else {
                   // Se não encontrou, criar uma nova família
                   console.log(`Família não encontrada, criando nova: ${skuData.familiaCodigo}`);
+                  console.log('Executando create para família...');
                   const novaFamilia = await prisma.familia.create({
                     data: {
                       codigo: parseInt(skuData.familiaCodigo) || 0,
@@ -183,6 +200,7 @@ export async function POST(request: NextRequest) {
                       descricao: `Família criada automaticamente via importação - ${skuData.familiaCodigo}`
                     }
                   });
+                  console.log(`Create de família executado: ${novaFamilia.nome} (ID: ${novaFamilia.id})`);
                   skuData.familiaId = novaFamilia.id;
                   skuData.familiaNome = novaFamilia.nome;
                   console.log(`Nova família criada: ${novaFamilia.nome} (ID: ${novaFamilia.id})`);
@@ -196,6 +214,7 @@ export async function POST(request: NextRequest) {
             // 2. Resolver Tamanho
             if (skuData.tamanhoCodigo) {
               try {
+                console.log(`Executando query para tamanho: ${skuData.tamanhoCodigo}`);
                 const tamanho = await prisma.tamanho.findFirst({
                   where: {
                     OR: [
@@ -204,12 +223,15 @@ export async function POST(request: NextRequest) {
                     ]
                   }
                 });
+                console.log(`Query de tamanho executada: ${tamanho ? 'Encontrado' : 'Não encontrado'}`);
 
                 if (tamanho) {
                   skuData.tamanhoId = tamanho.id;
                   skuData.tamanhoNome = tamanho.nome;
                 } else {
                   // Se não encontrou, criar um novo tamanho
+                  console.log(`Tamanho não encontrado, criando novo: ${skuData.tamanhoCodigo}`);
+                  console.log('Executando create para tamanho...');
                   const novoTamanho = await prisma.tamanho.create({
                     data: {
                       codigo: parseInt(skuData.tamanhoCodigo) || 0,
@@ -217,6 +239,7 @@ export async function POST(request: NextRequest) {
                       descricao: `Tamanho criado automaticamente via importação - ${skuData.tamanhoCodigo}`
                     }
                   });
+                  console.log(`Create de tamanho executado: ${novoTamanho.nome} (ID: ${novoTamanho.id})`);
                   skuData.tamanhoId = novoTamanho.id;
                   skuData.tamanhoNome = novoTamanho.nome;
                 }
@@ -229,6 +252,7 @@ export async function POST(request: NextRequest) {
             // 3. Resolver UNEG
             if (skuData.unegCodigo) {
               try {
+                console.log(`Executando query para UNEG: ${skuData.unegCodigo}`);
                 const uneg = await prisma.uNEG.findFirst({
                   where: {
                     OR: [
@@ -237,12 +261,15 @@ export async function POST(request: NextRequest) {
                     ]
                   }
                 });
+                console.log(`Query de UNEG executada: ${uneg ? 'Encontrada' : 'Não encontrada'}`);
 
                 if (uneg) {
                   skuData.unegId = uneg.id;
                   skuData.unegNome = uneg.nome;
                 } else {
                   // Se não encontrou, criar uma nova UNEG
+                  console.log(`UNEG não encontrada, criando nova: ${skuData.unegCodigo}`);
+                  console.log('Executando create para UNEG...');
                   const novaUneg = await prisma.uNEG.create({
                     data: {
                       codigo: skuData.unegCodigo,
@@ -250,6 +277,7 @@ export async function POST(request: NextRequest) {
                       descricao: `UNEG criada automaticamente via importação - ${skuData.unegCodigo}`
                     }
                   });
+                  console.log(`Create de UNEG executado: ${novaUneg.nome} (ID: ${novaUneg.id})`);
                   skuData.unegId = novaUneg.id;
                   skuData.unegNome = novaUneg.nome;
                 }
@@ -272,16 +300,24 @@ export async function POST(request: NextRequest) {
             console.log(`Dados finais antes da criação para linha ${rowNumber}:`, JSON.stringify(skuData, null, 2));
 
             // Criar SKU com timeout individual
-            await Promise.race([
-              prisma.sKU.create({
-                data: skuData
-              }),
-              new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Timeout na criação do SKU')), 30000)
-              )
-            ]);
-
-            results.imported++;
+            console.log(`Iniciando criação do SKU para linha ${rowNumber}...`);
+            try {
+              const createdSKU = await Promise.race([
+                prisma.sKU.create({
+                  data: skuData
+                }),
+                new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Timeout na criação do SKU')), 30000)
+                )
+              ]) as any;
+              console.log(`SKU criado com sucesso: ${createdSKU.id}`);
+              results.imported++;
+            } catch (createError) {
+              console.error(`Erro na criação do SKU para linha ${rowNumber}:`, createError);
+              const errorMessage = createError instanceof Error ? createError.message : 'Erro desconhecido na criação';
+              results.errors.push(`Linha ${rowNumber}: ${errorMessage}`);
+              continue;
+            }
 
           } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
