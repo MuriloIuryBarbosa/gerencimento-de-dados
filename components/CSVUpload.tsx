@@ -38,15 +38,45 @@ export default function CSVUpload({ title, moduleName, availableFields, onImport
   const [uploadProgress, setUploadProgress] = useState(0);
   const [importResult, setImportResult] = useState<{ success: boolean; message: string; imported: number; errors: string[] } | null>(null);
   const [currentStep, setCurrentStep] = useState<'upload' | 'mapping' | 'preview' | 'importing'>('upload');
+  const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
-    if (selectedFile && selectedFile.type === 'text/csv') {
+    if (selectedFile && (selectedFile.type === 'text/csv' || selectedFile.name.toLowerCase().endsWith('.csv'))) {
       setFile(selectedFile);
       parseCSV(selectedFile);
     } else {
       alert('Por favor, selecione um arquivo CSV válido.');
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragOver(false);
+
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+      const selectedFile = files[0];
+      if (selectedFile.type === 'text/csv' || selectedFile.name.toLowerCase().endsWith('.csv')) {
+        setFile(selectedFile);
+        parseCSV(selectedFile);
+      } else {
+        alert('Por favor, arraste um arquivo CSV válido.');
+      }
     }
   };
 
@@ -56,12 +86,23 @@ export default function CSVUpload({ title, moduleName, availableFields, onImport
       skipEmptyLines: true,
       complete: (results: Papa.ParseResult<any>) => {
         if (results.errors.length > 0) {
-          alert('Erro ao processar o arquivo CSV: ' + results.errors[0].message);
+          console.error('Erros no parsing CSV:', results.errors);
+          alert(`Erro ao processar o arquivo CSV: ${results.errors[0].message}\n\nVerifique se o arquivo está no formato correto.`);
+          return;
+        }
+
+        if (!results.data || results.data.length === 0) {
+          alert('O arquivo CSV está vazio ou não contém dados válidos.');
+          return;
+        }
+
+        if (!results.meta.fields || results.meta.fields.length === 0) {
+          alert('O arquivo CSV não contém cabeçalhos válidos.');
           return;
         }
 
         setCsvData(results.data);
-        setCsvHeaders(results.meta.fields || []);
+        setCsvHeaders(results.meta.fields);
         setCurrentStep('mapping');
 
         // Inicializar mapeamentos automáticos
@@ -80,6 +121,10 @@ export default function CSVUpload({ title, moduleName, availableFields, onImport
           }
         });
         setColumnMappings(autoMappings);
+      },
+      error: (error) => {
+        console.error('Erro crítico no parsing:', error);
+        alert('Erro ao ler o arquivo CSV. Verifique se o arquivo não está corrompido.');
       }
     });
   };
@@ -173,6 +218,7 @@ export default function CSVUpload({ title, moduleName, availableFields, onImport
     setImportResult(null);
     setCurrentStep('upload');
     setUploadProgress(0);
+    setIsDragOver(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -244,15 +290,30 @@ export default function CSVUpload({ title, moduleName, availableFields, onImport
           {/* Step 1: File Upload */}
           {currentStep === 'upload' && (
             <div className="text-center">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 mb-4">
-                <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-4">
-                  Arraste e solte um arquivo CSV aqui ou clique para selecionar
+              <div
+                className={`border-2 border-dashed rounded-lg p-8 mb-4 transition-colors cursor-pointer ${
+                  isDragOver
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className={`h-12 w-12 mx-auto mb-4 transition-colors ${
+                  isDragOver ? 'text-blue-500' : 'text-gray-400'
+                }`} />
+                <p className={`text-lg mb-2 transition-colors ${
+                  isDragOver ? 'text-blue-600 font-medium' : 'text-gray-600'
+                }`}>
+                  {isDragOver ? 'Solte o arquivo aqui' : 'Arraste e solte um arquivo CSV aqui'}
                 </p>
+                <p className="text-gray-500 mb-4">ou</p>
                 <Input
                   ref={fileInputRef}
                   type="file"
-                  accept=".csv"
+                  accept=".csv,text/csv"
                   onChange={handleFileSelect}
                   className="hidden"
                   id="csv-upload"
@@ -263,6 +324,14 @@ export default function CSVUpload({ title, moduleName, availableFields, onImport
                     Selecionar Arquivo CSV
                   </Button>
                 </Label>
+                {file && (
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      <CheckCircle className="h-4 w-4 inline mr-2" />
+                      Arquivo selecionado: <strong>{file.name}</strong> ({(file.size / 1024).toFixed(1)} KB)
+                    </p>
+                  </div>
+                )}
               </div>
 
               {sampleData && (
