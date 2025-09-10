@@ -3,14 +3,41 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: 255 255 255; /* Branco puro */
+  --foreground: 23 23 23; /* Cinza escuro */
+  --primary: 59 130 246; /* Azul */
+  --primary-foreground: 255 255 255; /* Branco */
+  --secondary: 243 244 246; /* Cinza claro */
+  --secondary-foreground: 31 41 55; /* Cinza escuro */
+  --muted: 243 244 246; /* Cinza claro */
+  --muted-foreground: 107 114 128; /* Cinza médio */
+  --accent: 243 244 246; /* Cinza claro */
+  --accent-foreground: 31 41 55; /* Cinza escuro */
+  --destructive: 239 68 68; /* Vermelho */
+  --destructive-foreground: 255 255 255; /* Branco */
+  --border: 229 231 235; /* Cinza claro */
+  --input: 229 231 235; /* Cinza claro */
+  --ring: 59 130 246; /* Azul */
+  --radius: 0.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 10 10 10; /* Cinza muito escuro */
+    --foreground: 237 237 237; /* Branco acinzentado */
+    --primary: 59 130 246; /* Azul */
+    --primary-foreground: 255 255 255; /* Branco */
+    --secondary: 31 41 55; /* Cinza escuro */
+    --secondary-foreground: 243 244 246; /* Cinza claro */
+    --muted: 31 41 55; /* Cinza escuro */
+    --muted-foreground: 156 163 175; /* Cinza médio */
+    --accent: 31 41 55; /* Cinza escuro */
+    --accent-foreground: 243 244 246; /* Cinza claro */
+    --destructive: 239 68 68; /* Vermelho */
+    --destructive-foreground: 255 255 255; /* Branco */
+    --border: 55 65 81; /* Cinza médio escuro */
+    --input: 55 65 81; /* Cinza médio escuro */
+    --ring: 59 130 246; /* Azul */
   }
 }
 
@@ -22,4 +49,25 @@ body {
       rgb(var(--background))
     )
     rgb(var(--background));
+}
+
+/* Garantir que os botões não fiquem pretos */
+button {
+  color: inherit;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Corrigir cores dos componentes shadcn/ui */
+[data-theme="light"] {
+  --background: 255 255 255;
+  --foreground: 23 23 23;
+}
+
+[data-theme="dark"] {
+  --background: 10 10 10;
+  --foreground: 237 237 237;
 }

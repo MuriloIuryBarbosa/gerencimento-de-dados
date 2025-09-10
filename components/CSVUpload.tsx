@@ -292,7 +292,7 @@ export default function CSVUpload({ title, moduleName, availableFields, onImport
                 {csvHeaders.map(header => {
                   const mapping = columnMappings.find(m => m.csvColumn === header);
                   return (
-                    <div key={header} className="flex items-center gap-4 p-4 border rounded-lg">
+                    <div key={header} className="flex items-center gap-4 p-4 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors">
                       <div className="flex-1">
                         <Label className="text-sm font-medium">Coluna CSV: {header}</Label>
                         <p className="text-xs text-gray-500">Amostra: {csvData[0]?.[header]?.toString().slice(0, 50)}...</p>
