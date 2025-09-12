@@ -4,16 +4,15 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
+    const token = request.cookies.get('auth-token')?.value;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
       return NextResponse.json(
         { error: 'Token não fornecido' },
         { status: 401 }
       );
     }
 
-    const token = authHeader.substring(7);
     const payload = AuthService.verifyToken(token);
 
     if (!payload) {

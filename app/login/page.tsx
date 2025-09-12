@@ -52,8 +52,8 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      // Salvar token no localStorage
-      localStorage.setItem('token', data.token);
+      // O token é definido como cookie pelo servidor
+      // Não precisamos salvar no localStorage
 
       // Redirecionar para dashboard
       router.push('/dashboard');

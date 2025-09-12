@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthContext";
+import { LanguageProvider } from "@/components/LanguageContext";
 
 export const metadata: Metadata = {
   title: "Sistema de Gerenciamento de Dados",
@@ -15,9 +16,11 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className="antialiased">
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import jwt from 'jsonwebtoken'
 
+export const runtime = 'nodejs' // Força o uso do runtime Node.js
+
 export function middleware(request: NextRequest) {
   // Define protected routes
   const protectedRoutes = [
