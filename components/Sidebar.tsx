@@ -42,6 +42,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       '/cadastro/unegs': 'Cadastro',
       '/cadastro/depositos': 'Cadastro',
       '/cadastro/estoque': 'Cadastro',
+      '/cadastro/analytics': 'Cadastro',
 
       // Executivo
       '/executivo': 'Executivo',
@@ -49,14 +50,17 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       '/executivo/precos': 'Executivo',
       '/executivo/estoque': 'Executivo',
       '/executivo/cores': 'Executivo',
+      '/executivo/analytics': 'Executivo',
 
       // Cubagem
       '/cubagem': 'Cubagem',
       '/cubagem/simulador': 'Cubagem',
+      '/cubagem/analytics': 'Cubagem',
 
       // Financeiro
       '/financeiro': 'Financeiro',
       '/financeiro/boletos': 'Financeiro',
+      '/financeiro/analytics': 'Financeiro',
 
       // Planejamento
       '/planejamento': 'Planejamento',
@@ -67,6 +71,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       '/requisicoes/nova': 'Planejamento',
       '/conteineres': 'Planejamento',
       '/followup': 'Planejamento',
+      '/planejamento/analytics': 'Planejamento',
 
       // Administração
       '/admin': 'Administração',
@@ -76,6 +81,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       '/admin/permissoes-dinamicas': 'Administração',
       '/admin/logs': 'Administração',
       '/admin/tabelas': 'Administração',
+      '/admin/analytics': 'Administração',
     };
 
     return routeMappings[path] || null;
@@ -110,6 +116,12 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       icon: Package,
       description: "Módulos de cadastro",
       submodules: [
+        {
+          name: "Analytics Cadastro",
+          href: "/cadastro/analytics",
+          icon: BarChart3,
+          description: "Dashboard e analytics do módulo de cadastro"
+        },
         {
           name: t("skus"),
           href: "/cadastro/skus",
@@ -191,6 +203,12 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       description: "Módulos executivos",
       submodules: [
         {
+          name: "Analytics Executivo",
+          href: "/executivo/analytics",
+          icon: BarChart3,
+          description: "Dashboard e analytics do módulo executivo"
+        },
+        {
           name: t("skus"),
           href: "/executivo/skus",
           icon: Package,
@@ -223,6 +241,12 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       description: "Módulos de cubagem e volume",
       submodules: [
         {
+          name: "Analytics Cubagem",
+          href: "/cubagem/analytics",
+          icon: BarChart3,
+          description: "Dashboard e analytics do módulo de cubagem"
+        },
+        {
           name: "Simulador de Cubagem",
           href: "/cubagem/simulador",
           icon: Package,
@@ -237,6 +261,12 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       description: "Módulos financeiros",
       submodules: [
         {
+          name: "Analytics Financeiro",
+          href: "/financeiro/analytics",
+          icon: BarChart3,
+          description: "Dashboard e analytics do módulo financeiro"
+        },
+        {
           name: "Gestão de Boletos",
           href: "/financeiro/boletos",
           icon: FileText,
@@ -250,6 +280,12 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       icon: BarChart3,
       description: "Módulos de planejamento",
       submodules: [
+        {
+          name: "Analytics Planejamento",
+          href: "/planejamento/analytics",
+          icon: BarChart3,
+          description: "Dashboard e analytics do módulo de planejamento"
+        },
         {
           name: t("orders"),
           href: "/ordem-compra",
@@ -289,6 +325,12 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       icon: Shield,
       description: "Painel administrativo do sistema",
       submodules: [
+        {
+          name: "Analytics Administração",
+          href: "/admin/analytics",
+          icon: BarChart3,
+          description: "Dashboard e analytics administrativos"
+        },
         {
           name: "Dashboard Admin",
           href: "/admin/dashboard",
@@ -481,10 +523,10 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
               return (
                 <li key={module.name}>
                   <div className="flex flex-col">
-                    {/* Module header - clickable */}
-                    <Link
-                      href={module.href}
-                      className={`flex items-center px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors group ${
+                    {/* Module header - clickable to expand/collapse */}
+                    <button
+                      onClick={() => toggleModule(module.name)}
+                      className={`flex items-center px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors group w-full ${
                         isOpen ? 'justify-between' : 'justify-center'
                       }`}
                       title={isOpen ? '' : module.description}
@@ -505,7 +547,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                           }`}
                         />
                       )}
-                    </Link>
+                    </button>
                   </div>
 
                   {/* Submodules */}
