@@ -10,8 +10,6 @@ import { Package, Plus, Search, Edit, Eye, AlertCircle, Upload } from 'lucide-re
 interface SKU {
   id: string;
   nome: string;
-  descricao: string | null;
-  categoria: string | null;
   unidade: string;
   precoVenda: number | null;
   custoMedio: number | null;
@@ -53,8 +51,6 @@ export default function SKUs() {
 
   const filteredSkus = skus.filter(sku =>
     sku.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    sku.descricao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    sku.categoria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     sku.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -120,7 +116,7 @@ export default function SKUs() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               type="text"
-              placeholder="Buscar SKUs por nome, código, descrição ou categoria..."
+              placeholder="Buscar SKUs por nome ou código..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -169,14 +165,7 @@ export default function SKUs() {
                             <h3 className="text-lg font-semibold text-gray-900">{sku.nome}</h3>
                             <p className="text-sm text-gray-600 mb-2">Código: {sku.id}</p>
 
-                            {sku.descricao && (
-                              <p className="text-sm text-gray-500 mb-3">{sku.descricao}</p>
-                            )}
-
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-500">
-                              <div>
-                                <span className="font-medium">Categoria:</span> {sku.categoria || 'Não informado'}
-                              </div>
                               <div>
                                 <span className="font-medium">Unidade:</span> {sku.unidade}
                               </div>

@@ -12,15 +12,12 @@ export async function GET(request: NextRequest) {
         ativo: true,
         OR: search ? [
           { nome: { contains: search } },
-          { id: { contains: search } },
-          { descricao: { contains: search } }
+          { id: { contains: search } }
         ] : undefined
       },
       select: {
         id: true,
         nome: true,
-        descricao: true,
-        categoria: true,
         unidade: true,
         precoVenda: true,
         custoMedio: true,
@@ -49,62 +46,32 @@ export async function POST(request: NextRequest) {
     const {
       id,
       nome,
-      descricao,
-      categoria,
+      familiaId,
+      cor,
+      tamanhoId,
+      unegId,
       unidade,
       precoVenda,
       custoMedio,
       estoqueMinimo,
       estoqueMaximo,
-      // Novos campos do CSV
-      unegNome,
-      unegCodigo,
-      familiaCodigo,
-      familiaNome,
-      corCodigo,
-      corNome,
-      tamanhoCodigo,
-      tamanhoNome,
-      curvaOrdem,
-      curvaOrdemCurta,
-      subgrupo,
-      item,
-      destino,
-      leadTimeReposicao,
-      radarPlanejamento,
-      gramatura,
-      exclusivo
+      ativo = true
     } = body;
 
     const sku = await prisma.sKU.create({
       data: {
         id,
         nome,
-        descricao,
-        categoria,
+        familiaId,
+        cor,
+        tamanhoId,
+        unegId,
         unidade,
         precoVenda,
         custoMedio,
         estoqueMinimo,
         estoqueMaximo,
-        // Novos campos
-        unegNome,
-        unegCodigo,
-        familiaCodigo,
-        familiaNome,
-        corCodigo,
-        corNome,
-        tamanhoCodigo,
-        tamanhoNome,
-        curvaOrdem,
-        curvaOrdemCurta,
-        subgrupo,
-        item,
-        destino,
-        leadTimeReposicao,
-        radarPlanejamento,
-        gramatura,
-        exclusivo
+        ativo
       }
     });
 

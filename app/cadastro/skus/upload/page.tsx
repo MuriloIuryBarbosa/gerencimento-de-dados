@@ -29,11 +29,7 @@ export default function UploadSKUs() {
     { key: 'destino', label: 'Destino', required: false, type: 'string' as const },
     { key: 'leadTimeReposicao', label: 'Lead_time_reposicao', required: false, type: 'number' as const },
     { key: 'unidade', label: 'Unidade', required: true, type: 'string' as const },
-    { key: 'radarPlanejamento', label: 'Radar_Planejamento', required: false, type: 'string' as const },
-    { key: 'gramatura', label: 'Gramatura', required: false, type: 'string' as const },
     { key: 'exclusivo', label: 'Exclusivo', required: false, type: 'string' as const },
-    { key: 'descricao', label: 'Descrição', required: false, type: 'string' as const },
-    { key: 'categoria', label: 'Categoria', required: false, type: 'string' as const },
     { key: 'precoVenda', label: 'Preço de Venda', required: false, type: 'number' as const },
     { key: 'custoMedio', label: 'Custo Médio', required: false, type: 'number' as const },
     { key: 'estoqueMaximo', label: 'Estoque Máximo', required: false, type: 'number' as const }
@@ -58,9 +54,7 @@ export default function UploadSKUs() {
       destino: 'PRODUÇÃO',
       leadTimeReposicao: 209,
       unidade: 'MT',
-      gramatura: '65G/M2',
-      descricao: 'Microfibra estampada para produção',
-      categoria: 'Tecido',
+      exclusivo: 'NAO',
       precoVenda: 29.90,
       custoMedio: 15.50,
       estoqueMaximo: 100
@@ -83,8 +77,7 @@ export default function UploadSKUs() {
       destino: 'VENDA',
       leadTimeReposicao: 164,
       unidade: 'MT',
-      descricao: 'Voil branco para decoração',
-      categoria: 'Tecido',
+      exclusivo: 'NAO',
       precoVenda: 45.00,
       custoMedio: 22.00,
       estoqueMaximo: 50
@@ -168,8 +161,6 @@ export default function UploadSKUs() {
               <h4 className="font-medium text-gray-900 mb-2">Campos Opcionais</h4>
               <ul className="text-sm text-gray-600 space-y-1">
                 <li>• Nome do Produto</li>
-                <li>• Descrição</li>
-                <li>• Categoria</li>
                 <li>• Preço de Venda</li>
                 <li>• Custo Médio</li>
                 <li>• Estoque Mínimo</li>

@@ -297,7 +297,12 @@ export default function CSVUpload({ title, moduleName, availableFields, onImport
         setTimeout(() => reject(new Error('Timeout: A importação demorou mais de 6 minutos')), 360000);
       });
 
-      const result = await Promise.race([apiCallPromise, timeoutPromise]);
+      const result = await Promise.race([apiCallPromise, timeoutPromise]) as {
+        success: boolean;
+        message: string;
+        imported: number;
+        errors: string[];
+      };
       setImportResult(result);
       setUploadProgress(100);
       setCurrentStatus('Importação concluída!');

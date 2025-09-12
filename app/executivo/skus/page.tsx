@@ -8,7 +8,6 @@ const mockSKUs = [
   {
     id: "SKU-2025-001",
     nome: "Algodão Premium Branco",
-    categoria: "Tecidos",
     fornecedor: "Fornecedor A",
     precoCusto: 45.00,
     precoVenda: 75.00,
@@ -16,13 +15,11 @@ const mockSKUs = [
     estoqueMinimo: 500,
     unidade: "metros",
     status: "Ativo",
-    dataCadastro: "2025-01-15",
-    descricao: "Tecido de algodão 100% premium, ideal para confecção"
+    dataCadastro: "2025-01-15"
   },
   {
     id: "SKU-2025-002",
     nome: "Poliéster Azul Marinho",
-    categoria: "Tecidos",
     fornecedor: "Fornecedor B",
     precoCusto: 32.00,
     precoVenda: 58.00,
@@ -30,13 +27,11 @@ const mockSKUs = [
     estoqueMinimo: 300,
     unidade: "metros",
     status: "Ativo",
-    dataCadastro: "2025-01-12",
-    descricao: "Tecido de poliéster resistente, cor azul marinho"
+    dataCadastro: "2025-01-12"
   },
   {
     id: "SKU-2025-003",
     nome: "Linho Natural",
-    categoria: "Tecidos",
     fornecedor: "Fornecedor C",
     precoCusto: 85.00,
     precoVenda: 145.00,
@@ -44,13 +39,11 @@ const mockSKUs = [
     estoqueMinimo: 100,
     unidade: "metros",
     status: "Baixo Estoque",
-    dataCadastro: "2025-01-10",
-    descricao: "Tecido de linho natural premium"
+    dataCadastro: "2025-01-10"
   },
   {
     id: "SKU-2025-004",
     nome: "Seda Vermelha",
-    categoria: "Tecidos Premium",
     fornecedor: "Fornecedor D",
     precoCusto: 120.00,
     precoVenda: 220.00,
@@ -58,8 +51,7 @@ const mockSKUs = [
     estoqueMinimo: 50,
     unidade: "metros",
     status: "Fora de Estoque",
-    dataCadastro: "2025-01-08",
-    descricao: "Tecido de seda pura, cor vermelha vibrante"
+    dataCadastro: "2025-01-08"
   }
 ];
 
@@ -195,9 +187,6 @@ export default function GestaoSKUs() {
                     Nome
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Categoria
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Preço Venda
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -226,9 +215,6 @@ export default function GestaoSKUs() {
                           {sku.fornecedor}
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {sku.categoria}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       R$ {sku.precoVenda.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -290,17 +276,6 @@ export default function GestaoSKUs() {
                 placeholder="Digite o nome ou código..."
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Categoria
-              </label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                <option value="">Todas as categorias</option>
-                <option value="tecidos">Tecidos</option>
-                <option value="premium">Tecidos Premium</option>
-                <option value="acessorios">Acessórios</option>
-              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

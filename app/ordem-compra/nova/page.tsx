@@ -16,8 +16,6 @@ interface Empresa {
 interface SKU {
   id: string;
   nome: string;
-  descricao: string;
-  categoria: string;
   unidade: string;
   precoVenda: number | null;
   custoMedio: number | null;
@@ -169,10 +167,10 @@ export default function NovaOrdemCompra() {
     // Preencher campos automaticamente
     setFormData(prev => ({
       ...prev,
-      produtoDescricao: sku.descricao && sku.descricao !== sku.nome ? sku.descricao : sku.nome,
+      produtoDescricao: sku.nome,
       uneg: sku.id.substring(0, 6), // Extrair UNEG do ID do SKU
-      familiaCodigo: sku.categoria || '',
-      familiaNome: sku.categoria || ''
+      familiaCodigo: '',
+      familiaNome: ''
     }));
 
     // Atualizar item atual
@@ -182,7 +180,7 @@ export default function NovaOrdemCompra() {
       skuNome: sku.nome,
       unidade: sku.unidade,
       valorUnitario: sku.custoMedio || sku.precoVenda || 0,
-      descricao: sku.descricao || sku.nome
+      descricao: sku.nome
     }));
   };
 
@@ -449,7 +447,7 @@ export default function NovaOrdemCompra() {
                             >
                               <div className="font-medium text-gray-900">{sku.nome}</div>
                               <div className="text-sm text-gray-500">
-                                ID: {sku.id} | Categoria: {sku.categoria || 'N/A'} | Preço: {sku.precoVenda ? `R$ ${sku.precoVenda.toFixed(2)}` : 'N/A'}
+                                ID: {sku.id} | Preço: {sku.precoVenda ? `R$ ${sku.precoVenda.toFixed(2)}` : 'N/A'}
                               </div>
                             </div>
                           ))}
@@ -471,7 +469,6 @@ export default function NovaOrdemCompra() {
                         <strong>Selecionado:</strong> {selectedSku.nome} ({selectedSku.id})
                       </div>
                       <div className="text-xs text-blue-600 mt-1">
-                        Categoria: {selectedSku.categoria || 'N/A'} |
                         Unidade: {selectedSku.unidade} |
                         Preço: {selectedSku.precoVenda ? `R$ ${selectedSku.precoVenda.toFixed(2)}` : 'N/A'}
                       </div>

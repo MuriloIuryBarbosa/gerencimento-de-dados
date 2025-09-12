@@ -16,8 +16,6 @@ export default function NovoSKU() {
   const [formData, setFormData] = useState({
     id: "",
     nome: "",
-    descricao: "",
-    categoria: "",
     unidade: "UN",
     precoVenda: "",
     custoMedio: "",
@@ -165,8 +163,6 @@ export default function NovoSKU() {
       setFormData({
         id: "",
         nome: "",
-        descricao: "",
-        categoria: "",
         unidade: "UN",
         precoVenda: "",
         custoMedio: "",
@@ -267,21 +263,6 @@ export default function NovoSKU() {
                 </div>
               </div>
 
-              {/* Descrição */}
-              <div className="space-y-2">
-                <Label htmlFor="descricao" className="text-sm font-medium text-gray-700">
-                  Descrição
-                </Label>
-                <Textarea
-                  id="descricao"
-                  value={formData.descricao}
-                  onChange={(e) => handleInputChange('descricao', e.target.value)}
-                  placeholder="Descrição detalhada do produto"
-                  className="min-h-24 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  rows={4}
-                />
-              </div>
-
               {/* Família, Tamanho e Cor */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
@@ -324,43 +305,27 @@ export default function NovoSKU() {
                 </div>
               </div>
 
-              {/* Categoria e Unidade */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="categoria" className="text-sm font-medium text-gray-700">
-                    Categoria
-                  </Label>
-                  <Input
-                    id="categoria"
-                    type="text"
-                    value={formData.categoria}
-                    onChange={(e) => handleInputChange('categoria', e.target.value)}
-                    placeholder="Ex: Eletrônicos, Roupas, etc."
-                    className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="unidade" className="text-sm font-medium text-gray-700">
-                    Unidade de Medida *
-                  </Label>
-                  <select
-                    id="unidade"
-                    value={formData.unidade}
-                    onChange={(e) => handleInputChange('unidade', e.target.value)}
-                    className="h-12 w-full px-3 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500 bg-white"
-                    required
-                  >
-                    <option value="UN">Unidade (UN)</option>
-                    <option value="KG">Quilograma (KG)</option>
-                    <option value="LT">Litro (LT)</option>
-                    <option value="MT">Metro (MT)</option>
-                    <option value="M2">Metro Quadrado (M²)</option>
-                    <option value="M3">Metro Cúbico (M³)</option>
-                    <option value="PC">Peça (PC)</option>
-                    <option value="CX">Caixa (CX)</option>
-                  </select>
-                </div>
+              {/* Unidade */}
+              <div className="space-y-2">
+                <Label htmlFor="unidade" className="text-sm font-medium text-gray-700">
+                  Unidade de Medida *
+                </Label>
+                <select
+                  id="unidade"
+                  value={formData.unidade}
+                  onChange={(e) => handleInputChange('unidade', e.target.value)}
+                  className="h-12 w-full px-3 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500 bg-white"
+                  required
+                >
+                  <option value="UN">Unidade (UN)</option>
+                  <option value="KG">Quilograma (KG)</option>
+                  <option value="LT">Litro (LT)</option>
+                  <option value="MT">Metro (MT)</option>
+                  <option value="M2">Metro Quadrado (M²)</option>
+                  <option value="M3">Metro Cúbico (M³)</option>
+                  <option value="PC">Peça (PC)</option>
+                  <option value="CX">Caixa (CX)</option>
+                </select>
               </div>
 
               {/* Preços */}

@@ -10,6 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Modelo de Usuário para Autenticação
 model Usuario {
   id            Int       @id @default(autoincrement())
   nome          String
@@ -27,702 +28,68 @@ model Usuario {
 
   empresa       Empresa?  @relation(fields: [empresaId], references: [id])
   permissoes    UsuarioPermissao[]
-  movimentacoes MovimentacaoEstoque[]
-  arquivosProcessados ArquivoEstoqueProcessado[]
-  historicoQualidade HistoricoQualidadeDados[]
+  resetTokens   PasswordResetToken[]
+  sessoes       SessaoUsuario[]
 
   @@map("usuarios")
 }
 
-model Fornecedor {
-  id                   Int       @id @default(autoincrement())
-  nome                 String    @unique
-  cnpj                 String?   @unique
-  endereco             String?
-  telefone             String?
-  email                String?
-  contatoPrincipal     String?
-  condicoesPagamento   String?
-  prazoEntregaPadrao   Int?
-  ativo                Boolean   @default(true)
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-
-  ordensCompra         OrdemCompra[]
-
-  @@map("fornecedores")
-}
-
-model OrdemCompra {
-  id                  String   @id
-  fornecedor          String
-  cnpj                String?
-  endereco            String?
-  telefone            String?
-  email               String?
-  condicaoPagamento   String?
-  prazoEntrega        DateTime?
-  observacoes         String?
-  status              String   @default("Pendente Aprovação")
-  prioridade          String   @default("Média")
-  dataEmissao         DateTime @default(now())
-  valorTotal          Decimal  @default(0.00)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  fornecedorRel       Fornecedor @relation(fields: [fornecedor], references: [nome])
-  itens               ItemOrdemCompra[]
-
-  @@map("ordens_compra")
-}
-
-model ItemOrdemCompra {
-  id              Int         @id @default(autoincrement())
-  ordemId         String
-  skuId           String
-  descricao       String
-  quantidade      Int
-  unidade         String
-  valorUnitario   Decimal
-  valorTotal      Decimal
-  dataEntrega     DateTime?
-  status          String      @default("Pendente")
-
-  ordem           OrdemCompra @relation(fields: [ordemId], references: [id])
-  sku             SKU         @relation(fields: [skuId], references: [id])
-
-  @@map("itens_ordem_compra")
-}
-
-model SKU {
-  id              String   @id
-  nome            String?  // Agora opcional
-  descricao       String?
-  categoria       String?
-
-  // Campos estruturais do SKU
-  familiaId       Int?     // ID da família
-  cor             String?  // Cor do produto
-  tamanhoId       Int?     // ID do tamanho
-  unegId          Int?     // ID da UNEG (Unidade de negócio)
-
-  // Novos campos do CSV
-  unegNome        String?  // Nome da UNEG
-  unegCodigo      String?  // Código da UNEG
-  familiaCodigo   String?  // Código da família
-  familiaNome     String?  // Nome da família
-  corCodigo       String?  // Código da cor
-  corNome         String?  // Nome da cor
-  tamanhoCodigo   String?  // Código do tamanho
-  tamanhoNome     String?  // Nome do tamanho
-  curvaOrdem      String?  // CURVA ORDEM
-  curvaOrdemCurta String?  // CURVA ORDEM CURTA
-  subgrupo        String?  // Subgrupo
-  item            String?  // ITEM
-  destino         String?  // Destino
-  leadTimeReposicao Int?   // Lead_time_reposicao
-  radarPlanejamento String? // Radar_Planejamento
-  gramatura       String?  // Gramatura
-  exclusivo       String?  // Exclusivo
-
-  // Controle de criação e qualidade
-  origemCriacao   String   @default("individual") // "individual", "upload_massa", "sistema"
-  statusRevisao   String   @default("revisado") // "pendente_revisao", "revisado", "rejeitado"
-  revisadoPor     Int?     // ID do usuário que revisou
-  dataRevisao     DateTime?
-  observacoesRevisao String?
-
-  unidade         String   @default("UN")
-  precoVenda      Decimal?
-  custoMedio      Decimal?
-  estoqueMinimo   Int      @default(0)
-  estoqueMaximo   Int?
-  ativo           Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  familia         Familia? @relation(fields: [familiaId], references: [id])
-  tamanho         Tamanho? @relation(fields: [tamanhoId], references: [id])
-  uneg            UNEG?    @relation(fields: [unegId], references: [id])
-  itensOrdem      ItemOrdemCompra[]
-  itensRequisicao ItemRequisicao[]
-  itensProforma   ItemProforma[]
-  estoques        Estoque[]
-  movimentacoes   MovimentacaoEstoque[]
-  itensEstoque    EstoqueBase[] // Relacionamento com dados de estoque carregados
-  estoqueConsolidado EstoqueConsolidado?
-
-  @@map("skus")
-}
-
-model Estoque {
-  id                    Int       @id @default(autoincrement())
-  skuId                 String
-  depositoId            Int?
-  quantidadeAtual       Int       @default(0)
-  quantidadeReservada   Int       @default(0)
-  quantidadeDisponivel  Int       @default(0)
-  localizacao           String?
-  lote                  String?
-  dataValidade          DateTime?
-  dataUltimaEntrada     DateTime?
-  dataUltimaSaida       DateTime?
-  custoMedio            Decimal?
-  valorTotalEstoque     Decimal?
-  status                String    @default("Disponível")
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-
-  sku                   SKU @relation(fields: [skuId], references: [id])
-  deposito              Deposito? @relation(fields: [depositoId], references: [id])
-
-  @@unique([skuId, localizacao])
-  @@map("estoque")
-}
-
-model MovimentacaoEstoque {
-  id                    Int         @id @default(autoincrement())
-  skuId                 String
-  depositoId            Int?
-  tipoMovimentacao      String
-  quantidade            Int
-  quantidadeAnterior    Int?
-  quantidadeAtual       Int?
-  localizacao           String?
-  lote                  String?
-  documentoReferencia   String?
-  custoUnitario         Decimal?
-  valorTotal            Decimal?
-  motivo                String?
-  usuarioId             Int?
-  dataMovimentacao      DateTime    @default(now())
-
-  sku                   SKU       @relation(fields: [skuId], references: [id])
-  deposito              Deposito? @relation(fields: [depositoId], references: [id])
-  usuario               Usuario?  @relation(fields: [usuarioId], references: [id])
-
-  @@map("movimentacoes_estoque")
-}
-
-model Cor {
-  id            Int     @id @default(autoincrement())
-  nome          String
-  codigoHex     String?
-  codigoPantone String?
-
-  @@map("cores")
-}
-
-model Requisicao {
-  id              String   @id
-  solicitante     String
-  departamento    String
-  dataRequisicao  DateTime @default(now())
-  dataNecessidade DateTime?
-  prioridade      String   @default("Média")
-  status          String   @default("Pendente")
-  observacoes     String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  itens           ItemRequisicao[]
-
-  @@map("requisicoes")
-}
-
-model ItemRequisicao {
-  id            Int         @id @default(autoincrement())
-  requisicaoId  String
-  skuId         String
-  descricao     String
-  quantidade    Int
-  unidade       String
-  observacoes   String?
-  status        String      @default("Pendente")
-
-  requisicao    Requisicao @relation(fields: [requisicaoId], references: [id])
-  sku           SKU        @relation(fields: [skuId], references: [id])
-
-  @@map("itens_requisicao")
-}
-
-model Proforma {
-  id              String   @id
-  fornecedor      String
-  moeda           String   @default("BRL")
-  taxaCambio      Decimal  @default(1.00)
-  prazoValidade   DateTime?
-  condicoes       String?
-  observacoes     String?
-  valorTotal      Decimal  @default(0.00)
-  status          String   @default("Rascunho")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  itens           ItemProforma[]
-
-  @@map("proformas")
-}
-
-model ItemProforma {
-  id            Int       @id @default(autoincrement())
-  proformaId    String
-  skuId         String
-  descricao     String
-  quantidade    Int
-  unidade       String
-  valorUnitario Decimal
-  valorTotal    Decimal
-
-  proforma      Proforma @relation(fields: [proformaId], references: [id])
-  sku           SKU      @relation(fields: [skuId], references: [id])
-
-  @@map("itens_proforma")
-}
-
-model FollowUp {
-  id              String   @id
-  titulo          String
-  descricao       String?
-  tipo            String
-  prioridade      String   @default("Média")
-  status          String   @default("Aberto")
-  responsavel     String?
-  dataVencimento  DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@map("follow_ups")
-}
-
-model Representante {
-  id            Int     @id @default(autoincrement())
-  nome          String
-  email         String? @unique
-  telefone      String?
-  empresa       String?
-  comissao      Decimal @default(0.00)
-  ativo         Boolean @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("representantes")
-}
-
-model Cliente {
-  id            Int     @id @default(autoincrement())
-  nome          String
-  razaoSocial   String?
-  cnpj          String? @unique
-  endereco      String?
-  telefone      String?
-  email         String?
-  contato       String?
-  ativo         Boolean @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("clientes")
-}
-
-model Transportadora {
-  id            Int     @id @default(autoincrement())
-  nome          String
-  cnpj          String? @unique
-  endereco      String?
-  telefone      String?
-  email         String?
-  contato       String?
-  prazoEntrega  Int? // em dias
-  valorFrete    Decimal @default(0.00)
-  ativo         Boolean @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("transportadoras")
-}
-
-// =====================================================
-// NOVAS TABELAS PARA ORDENS DE COMPRA AVANÇADAS
-// =====================================================
-
-model OrdensCompra {
-  id                        String   @id
-  empresa_id                Int
-  uneg                      String
-  familia_codigo            String
-  familia_nome              String?
-  produto_descricao         String?
-  cod_tamanho               String?
-  observacao                String?
-  capacidade_container      String?
-  planejado_compra          Int?
-  etd_target                DateTime?
-  week_etd                  String?
-  transit_time              Int?
-  lead_time                 Int?
-  factory_date              DateTime?
-  week_factory              String?
-  date_of_sale              DateTime?
-  prop_cont                 String?
-  original_total_value      Decimal?
-  cost_in_dollars           Decimal?
-  total_value_dollars_item  Decimal?
-  total_value_dollars_uc    Decimal?
-  total_containers          Int?
-
-  // Campos PI (Proforma Invoice)
-  pi_numero                 String?
-  pi_date                   DateTime?
-  pi_country                String?
-  pi_supplier               String?
-  pi_obs                    String?
-  pi_original_currency      String?
-  pi_original_cost          Decimal?
-
-  // Controle
-  status                    String   @default("Pendente Aprovação")
-  usuario_criador_nome      String
-  data_criacao              DateTime @default(now())
-  compartilhado_com         String?  // JSON string com array de IDs
-
-  empresa                   Empresa @relation(fields: [empresa_id], references: [id])
-  historico                 OrdensCompraHistorico[]
-
-  @@map("ordens_compra_novo")
-}
-
-model OrdensCompraHistorico {
-  id                Int      @id @default(autoincrement())
-  ordem_compra_id   String
-  acao              String   // Criada, Aprovada, Rejeitada, Modificada, etc.
-  usuario_nome      String
-  data_acao         DateTime @default(now())
-  detalhes          String?
-
-  ordemCompra       OrdensCompra @relation(fields: [ordem_compra_id], references: [id])
-
-  @@map("ordens_compra_historico")
-}
-
-// =====================================================
-// MODELOS DE ADMINISTRAÇÃO AVANÇADA
-// =====================================================
-
+// Empresa (estrutura básica)
 model Empresa {
-  id          Int      @id @default(autoincrement())
-  nome        String   @unique
-  cnpj        String?  @unique
+  id          Int       @id @default(autoincrement())
+  nome        String    @unique
+  cnpj        String?   @unique
   endereco    String?
-  cidade      String?
-  estado      String?
-  cep         String?
   telefone    String?
   email       String?
-  contato     String?
-  observacoes String?
-  dominio     String?  @unique // domínio personalizado
-  logo        String?
-  ativo       Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  ativo       Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   usuarios    Usuario[]
-  permissoes  PermissaoEmpresa[]
-  tabelas     TabelaDinamica[]
-  ordensCompra OrdensCompra[]
-  depositos   Deposito[]
 
   @@map("empresas")
 }
 
-model Permissao {
-  id          Int      @id @default(autoincrement())
-  nome        String   @unique
-  descricao   String?
-  categoria   String   // Sistema, Tabelas, Usuarios, Relatorios, etc.
-  ativo       Boolean  @default(true)
-  createdAt   DateTime @default(now())
-
-  usuarios    UsuarioPermissao[]
-  empresas    PermissaoEmpresa[]
-
-  @@map("permissoes")
-}
-
+// Permissões do Usuário
 model UsuarioPermissao {
-  id           Int       @id @default(autoincrement())
-  usuarioId    Int
-  permissaoId  Int
-  concedidoPor Int       // ID do usuário que concedeu
-  dataConcessao DateTime @default(now())
-  dataExpiracao DateTime?
-  ativo        Boolean   @default(true)
+  id         Int      @id @default(autoincrement())
+  usuarioId  Int
+  permissao  String   // Ex: "read", "write", "admin", etc.
+  recurso    String   // Ex: "usuarios", "cores", "skus", etc.
+  createdAt  DateTime @default(now())
 
-  usuario      Usuario   @relation(fields: [usuarioId], references: [id])
-  permissao    Permissao @relation(fields: [permissaoId], references: [id])
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
-  @@unique([usuarioId, permissaoId])
-  @@map("usuarios_permissoes")
+  @@unique([usuarioId, permissao, recurso])
+  @@map("usuario_permissoes")
 }
 
-model PermissaoEmpresa {
-  id          Int      @id @default(autoincrement())
-  empresaId   Int
-  permissaoId Int
-  ativo       Boolean  @default(true)
+// Token para Recuperação de Senha
+model PasswordResetToken {
+  id         Int      @id @default(autoincrement())
+  usuarioId  Int
+  token      String   @unique
+  expiresAt  DateTime
+  used       Boolean  @default(false)
+  createdAt  DateTime @default(now())
 
-  empresa     Empresa  @relation(fields: [empresaId], references: [id])
-  permissao   Permissao @relation(fields: [permissaoId], references: [id])
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
-  @@unique([empresaId, permissaoId])
-  @@map("permissoes_empresas")
+  @@map("password_reset_tokens")
 }
 
-model HistoricoQualidadeDados {
-  id                Int      @id @default(autoincrement())
-  dataCalculo       DateTime @default(now())
-  qualidadeGeral    Decimal
-  totalTabelas      Int
-  totalRegistros    Int
-  registrosCompletos Int
-  registrosIncompletos Int
-  detalhesTabelas   String   // JSON com detalhes por tabela
-  usuarioId         Int?
-  observacoes       String?
-  createdAt         DateTime @default(now())
+// Sessão do Usuário (opcional, para controle de sessões ativas)
+model SessaoUsuario {
+  id         Int      @id @default(autoincrement())
+  usuarioId  Int
+  token      String   @unique
+  expiresAt  DateTime
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
 
-  usuario           Usuario? @relation(fields: [usuarioId], references: [id])
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
-  @@map("historico_qualidade_dados")
-}
-
-model Familia {
-  id          Int      @id @default(autoincrement())
-  codigo      Int      @unique // Código numérico único
-  nome        String   @unique
-  descricao   String?
-  ativo       Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  skus        SKU[]
-
-  @@map("familias")
-}
-
-model Tamanho {
-  id          Int      @id @default(autoincrement())
-  codigo      Int      @unique // Código numérico único
-  nome        String   @unique
-  descricao   String?
-  ativo       Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  skus        SKU[]
-
-  @@map("tamanhos")
-}
-
-model UNEG {
-  id          Int      @id @default(autoincrement())
-  codigo      String   @unique
-  nome        String   @unique
-  descricao   String?
-  ativo       Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  skus        SKU[]
-
-  @@map("unegs")
-}
-
-model Deposito {
-  id              Int      @id @default(autoincrement())
-  codigo          String   @unique
-  nome            String
-  empresaId       Int
-  endereco        String?
-  cidade          String?
-  estado          String?
-  cep             String?
-  telefone        String?
-  responsavel     String?
-  capacidade      Decimal? // Capacidade em metros cúbicos
-  tipo            String   @default("Armazém") // Armazém, Centro de Distribuição, etc.
-  ativo           Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  empresa         Empresa                @relation(fields: [empresaId], references: [id])
-  estoques        Estoque[]
-  movimentacoes   MovimentacaoEstoque[]
-
-  @@map("depositos")
-}
-
-model TabelaDinamica {
-  id          Int      @id @default(autoincrement())
-  nome        String   @unique
-  descricao   String?
-  empresaId   Int
-  criadoPor   Int
-  ativo       Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  empresa     Empresa  @relation(fields: [empresaId], references: [id])
-  campos      CampoDinamico[]
-  registros   RegistroDinamico[]
-
-  @@map("tabelas_dinamicas")
-}
-
-model CampoDinamico {
-  id            Int      @id @default(autoincrement())
-  tabelaId      Int
-  nome          String
-  tipo          String   // TEXT, NUMBER, DATE, BOOLEAN, SELECT, etc.
-  tamanho       Int?     // para VARCHAR
-  obrigatorio   Boolean  @default(false)
-  unico         Boolean  @default(false)
-  valorPadrao   String?
-  opcoes        String?  // JSON para opções de SELECT
-  ordem         Int      @default(0)
-  ativo         Boolean  @default(true)
-  createdAt     DateTime @default(now())
-
-  tabela        TabelaDinamica @relation(fields: [tabelaId], references: [id])
-
-  @@unique([tabelaId, nome])
-  @@map("campos_dinamicos")
-}
-
-model RegistroDinamico {
-  id        Int      @id @default(autoincrement())
-  tabelaId  Int
-  dados     String   // JSON com os valores dos campos
-  criadoPor Int
-  ativo     Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  tabela    TabelaDinamica @relation(fields: [tabelaId], references: [id])
-
-  @@map("registros_dinamicos")
-}
-
-model LogSistema {
-  id          Int      @id @default(autoincrement())
-  usuarioId   Int?
-  acao        String   // CREATE, UPDATE, DELETE, LOGIN, etc.
-  entidade    String   // Usuario, TabelaDinamica, etc.
-  entidadeId  Int?
-  descricao   String
-  dadosAntes  String?  // JSON
-  dadosDepois String?  // JSON
-  ip          String?
-  userAgent   String?
-  createdAt   DateTime @default(now())
-
-  @@map("logs_sistema")
-}
-
-// =====================================================
-// TABELAS PARA CARREGAMENTO DE BASES DE ESTOQUE
-// =====================================================
-
-model LocalizacaoEstoque {
-  id              Int      @id @default(autoincrement())
-  codigo          String   @unique // Ex: "1.01.A.002"
-  descricao       String?
-  empresa         String   // FATEX, CORTTEX, etc.
-  armazem         String?  // Código do armazem
-  centroResponsavel String? // Centro responsável
-  ativo           Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  itens           EstoqueBase[]
-
-  @@map("localizacoes_estoque")
-}
-
-model EstoqueBase {
-  id                    Int         @id @default(autoincrement())
-  localizacaoId         Int
-  codigoProduto         String      // CODIGO do arquivo
-  skuId                 String?     // Relacionamento com SKU (pode ser null se SKU ainda não foi criado)
-  apelidoFamilia        String      // APELIDO FAMILIA
-  qualidade             String?     // QUAL
-  qmm                   String?     // QMM
-  cor                   String?     // COR
-  quantidade            Decimal     // QTDE
-  descricaoCor          String?     // DESC.COR
-  tamanho               String?     // TAM
-  tamanhoDetalhado      String?     // TAMD
-  embalagemVolume       String?     // EMBALAGEM/VOL(s)
-  unidade               String      // UN (MT, KG, PC)
-  pesoLiquido           Decimal?    // PESO LIQ
-  pesoBruto             Decimal?    // PESO BRUTO
-  empresa               String      // Empresa do arquivo
-  dataProcessamento     DateTime    @default(now())
-  arquivoOrigem         String      // Nome do arquivo de origem
-  lote                  String?     // Para controle de lotes
-  dataValidade          DateTime?
-  status                String      @default("Ativo")
-  observacoes           String?
-  createdAt             DateTime    @default(now())
-  updatedAt             DateTime    @updatedAt
-
-  localizacao           LocalizacaoEstoque @relation(fields: [localizacaoId], references: [id])
-  sku                   SKU?        @relation(fields: [skuId], references: [id])
-
-  @@map("estoque_base")
-}
-
-model ArquivoEstoqueProcessado {
-  id                Int      @id @default(autoincrement())
-  nomeArquivo       String   @unique
-  empresa           String
-  dataProcessamento DateTime @default(now())
-  totalRegistros    Int      @default(0)
-  registrosValidos  Int      @default(0)
-  registrosInvalidos Int     @default(0)
-  status            String   @default("Processando") // Processando, Concluido, Erro
-  erros             String?  // JSON com lista de erros
-  usuarioId         Int?
-  observacoes       String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  usuario           Usuario? @relation(fields: [usuarioId], references: [id])
-
-  @@map("arquivos_estoque_processados")
-}
-
-// =====================================================
-// TABELA PARA CONTROLE DE ESTOQUE CONSOLIDADO POR SKU
-// =====================================================
-
-model EstoqueConsolidado {
-  id                    Int         @id @default(autoincrement())
-  skuId                 String      @unique
-  quantidadeTotal       Decimal     @default(0) // Quantidade total em estoque
-  quantidadeReservada   Decimal     @default(0) // Quantidade reservada
-  quantidadeDisponivel  Decimal     @default(0) // Quantidade disponível
-  unidade               String      @default("UN")
-  valorTotalEstoque     Decimal?    // Valor total do estoque
-  custoMedio            Decimal?    // Custo médio ponderado
-  ultimaAtualizacao     DateTime    @default(now())
-  status                String      @default("Ativo")
-  observacoes           String?
-  createdAt             DateTime    @default(now())
-  updatedAt             DateTime    @updatedAt
-
-  sku                   SKU @relation(fields: [skuId], references: [id])
-
-  @@map("estoque_consolidado")
+  @@map("sessao_usuarios")
 }

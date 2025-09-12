@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import jwt from 'jsonwebtoken'
 
 export function middleware(request: NextRequest) {
   // Define protected routes
@@ -9,7 +10,7 @@ export function middleware(request: NextRequest) {
     '/proforma',
     '/requisicoes',
     '/conteineres',
-    '/followup',
+    '/follow-up',
     '/executivo',
     '/settings'
   ]
@@ -18,12 +19,66 @@ export function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith(route)
   )
 
-  // For now, we'll allow all routes since we don't have proper session management
-  // In production, you'd check for valid JWT tokens or session cookies here
+  // Define public routes that don't require authentication
+  const publicRoutes = [
+    '/',
+    '/login',
+    '/register'
+  ]
 
+  const isPublicRoute = publicRoutes.some(route =>
+    request.nextUrl.pathname === route
+  )
+
+  // If accessing a protected route, check authentication
   if (isProtectedRoute) {
-    // TODO: Implement proper authentication check
-    // For now, we'll allow access but the ProtectedRoute component will handle client-side checks
+    const token = request.cookies.get('auth-token')?.value
+
+    if (!token) {
+      // No token, redirect to login
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirect', request.nextUrl.pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    try {
+      // Verify JWT token
+      const secret = process.env.JWT_SECRET
+      if (!secret) {
+        console.error('JWT_SECRET not configured')
+        const loginUrl = new URL('/login', request.url)
+        return NextResponse.redirect(loginUrl)
+      }
+
+      jwt.verify(token, secret)
+
+      // Token is valid, allow access
+      return NextResponse.next()
+    } catch (error) {
+      // Token is invalid or expired, redirect to login
+      console.error('JWT verification failed:', error)
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirect', request.nextUrl.pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+  }
+
+  // If accessing login/register while authenticated, redirect to dashboard
+  if (isPublicRoute && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register')) {
+    const token = request.cookies.get('auth-token')?.value
+
+    if (token) {
+      try {
+        const secret = process.env.JWT_SECRET
+        if (secret) {
+          jwt.verify(token, secret)
+          // User is authenticated, redirect to dashboard
+          return NextResponse.redirect(new URL('/dashboard', request.url))
+        }
+      } catch (error) {
+        // Token is invalid, continue to login/register
+      }
+    }
   }
 
   return NextResponse.next()

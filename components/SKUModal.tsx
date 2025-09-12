@@ -17,8 +17,6 @@ export default function SKUModal({ isOpen, onSave, onCancel }: SKUModalProps) {
   const [formData, setFormData] = useState({
     id: '',
     nome: '',
-    descricao: '',
-    categoria: '',
     unidade: 'UN',
     precoVenda: '',
     custoMedio: '',
@@ -77,8 +75,6 @@ export default function SKUModal({ isOpen, onSave, onCancel }: SKUModalProps) {
         setFormData({
           id: '',
           nome: '',
-          descricao: '',
-          categoria: '',
           unidade: 'UN',
           precoVenda: '',
           custoMedio: '',
@@ -99,8 +95,6 @@ export default function SKUModal({ isOpen, onSave, onCancel }: SKUModalProps) {
     setFormData({
       id: '',
       nome: '',
-      descricao: '',
-      categoria: '',
       unidade: 'UN',
       precoVenda: '',
       custoMedio: '',
@@ -165,22 +159,8 @@ export default function SKUModal({ isOpen, onSave, onCancel }: SKUModalProps) {
             </div>
           </div>
 
-          {/* Categoria e Unidade */}
+          {/* Unidade */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="categoria" className="text-sm font-medium text-gray-700">
-                Categoria
-              </Label>
-              <Input
-                id="categoria"
-                type="text"
-                value={formData.categoria}
-                onChange={(e) => handleInputChange('categoria', e.target.value)}
-                placeholder="Categoria do produto"
-                className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="unidade" className="text-sm font-medium text-gray-700">
                 Unidade de Medida
@@ -247,21 +227,6 @@ export default function SKUModal({ isOpen, onSave, onCancel }: SKUModalProps) {
                 className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
-          </div>
-
-          {/* Descrição */}
-          <div className="space-y-2">
-            <Label htmlFor="descricao" className="text-sm font-medium text-gray-700">
-              Descrição
-            </Label>
-            <Textarea
-              id="descricao"
-              value={formData.descricao}
-              onChange={(e) => handleInputChange('descricao', e.target.value)}
-              placeholder="Descrição detalhada do produto..."
-              className="min-h-24 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              rows={4}
-            />
           </div>
 
           {/* Buttons */}

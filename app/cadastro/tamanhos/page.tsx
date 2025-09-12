@@ -78,7 +78,7 @@ export default function Tamanhos() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="bg-gradient-to-r from-pink-600 to-pink-700 shadow-lg">
+      <header className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
@@ -87,12 +87,12 @@ export default function Tamanhos() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">Tamanhos</h1>
-                <p className="text-pink-100">Gerenciar tamanhos disponíveis</p>
+                <p className="text-blue-100">Gerenciar tamanhos disponíveis no sistema</p>
               </div>
             </div>
             <div className="flex gap-4">
               <Link href="/cadastro/tamanhos/novo">
-                <Button className="bg-white text-pink-600 hover:bg-pink-50">
+                <Button className="bg-white text-blue-600 hover:bg-blue-50">
                   <Plus className="h-4 w-4 mr-2" />
                   Novo Tamanho
                 </Button>

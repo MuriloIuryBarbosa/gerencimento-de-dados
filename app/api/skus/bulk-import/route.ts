@@ -7,7 +7,7 @@ interface ColumnMapping {
   required: boolean;
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
 
   try {
@@ -24,11 +24,20 @@ export async function POST(request: NextRequest) {
     console.log('✅ Conexão com banco estabelecida');
 
     // Timeout de 5 minutos para a operação completa
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Timeout: Operação demorou mais de 5 minutos')), 300000);
+    const timeoutPromise = new Promise<NextResponse>((_, reject) => {
+      setTimeout(() => reject(NextResponse.json(
+        {
+          success: false,
+          message: 'Timeout: Operação demorou mais de 5 minutos',
+          imported: 0,
+          errors: ['Timeout: Operação demorou mais de 5 minutos'],
+          processingTime: Date.now() - startTime
+        },
+        { status: 408 }
+      )), 300000);
     });
 
-    const mainOperation = async () => {
+    const mainOperation = async (): Promise<NextResponse> => {
       const { data, mappings } = await request.json();
 
       if (!data || !Array.isArray(data) || !mappings || !Array.isArray(mappings)) {
@@ -105,11 +114,11 @@ export async function POST(request: NextRequest) {
 
             // Lista de campos válidos do schema SKU (excluindo relacionamentos que serão resolvidos depois)
             const validFields = [
-              'id', 'nome', 'descricao', 'categoria',
+              'id', 'nome',
               'familiaCodigo', 'familiaNome', 'cor', 'corCodigo', 'corNome',
               'tamanhoCodigo', 'tamanhoNome', 'unegCodigo', 'unegNome',
               'curvaOrdem', 'curvaOrdemCurta', 'subgrupo', 'item', 'destino',
-              'leadTimeReposicao', 'unidade', 'radarPlanejamento', 'gramatura',
+              'leadTimeReposicao', 'unidade',
               'exclusivo', 'precoVenda', 'custoMedio', 'estoqueMinimo',
               'estoqueMaximo', 'ativo', 'origemCriacao', 'statusRevisao',
               'revisadoPor', 'dataRevisao', 'observacoesRevisao',

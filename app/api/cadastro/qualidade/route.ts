@@ -26,20 +26,14 @@ async function analisarQualidadeSKU(): Promise<EstatisticasTabela> {
   let completos = 0;
   let problemas: string[] = [];
 
-  const semDescricao = skus.filter(sku => !sku.descricao).length;
-  const semCategoria = skus.filter(sku => !sku.categoria).length;
   const semPreco = skus.filter(sku => !sku.precoVenda).length;
 
-  // Um SKU é considerado completo se tem pelo menos nome, descrição e categoria
+  // Um SKU é considerado completo se tem pelo menos nome e unidade
   completos = skus.filter(sku =>
     sku.nome &&
-    sku.descricao &&
-    sku.categoria &&
     sku.unidade
   ).length;
 
-  if (semDescricao > 0) problemas.push(`${semDescricao} sem descrição`);
-  if (semCategoria > 0) problemas.push(`${semCategoria} sem categoria`);
   if (semPreco > 0) problemas.push(`${semPreco} sem preço de venda`);
 
   const qualidade = total > 0 ? (completos / total) * 100 : 0;

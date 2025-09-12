@@ -2,22 +2,23 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useLanguage } from "../../../../components/LanguageContext";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Palette, Save, X, ArrowLeft } from 'lucide-react';
 
 export default function NovaCor() {
-  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     nome: "",
-    codigoHex: "",
-    codigoPantone: ""
+    legado: ""
   });
   const [loading, setLoading] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [field]: value
     }));
   };
 
@@ -31,134 +32,151 @@ export default function NovaCor() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          ativo: true
+        }),
       });
 
       if (response.ok) {
-        alert(t('colorCreated'));
+        alert('Cor criada com sucesso!');
         setFormData({
           nome: "",
-          codigoHex: "",
-          codigoPantone: ""
+          legado: ""
         });
       } else {
         throw new Error('Erro ao criar cor');
       }
     } catch (error) {
       console.error('Erro:', error);
-      alert(t('errorCreatingColor'));
+      alert('Erro ao criar cor');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{t('newColor')}</h1>
-              <p className="mt-1 text-sm text-gray-500">
-                {t('fillColorData')}
-              </p>
-            </div>
-            <nav className="flex space-x-4">
-              <Link
-                href="/cadastro/cores"
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                ← {t('back')}
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                {t('colorInfo')}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('colorName')} *
-                  </label>
-                  <input
-                    type="text"
-                    name="nome"
-                    value={formData.nome}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('hexCode')}
-                  </label>
-                  <input
-                    type="text"
-                    name="codigoHex"
-                    value={formData.codigoHex}
-                    onChange={handleInputChange}
-                    placeholder="#000000"
-                    pattern="^#[0-9A-Fa-f]{6}$"
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('pantoneCode')}
-                  </label>
-                  <input
-                    type="text"
-                    name="codigoPantone"
-                    value={formData.codigoPantone}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('preview')}
-                  </label>
-                  <div className="mt-1 flex items-center space-x-4">
-                    <div
-                      className="w-16 h-16 rounded border border-gray-300"
-                      style={{
-                        backgroundColor: formData.codigoHex || '#ffffff'
-                      }}
-                    />
-                    <span className="text-sm text-gray-500">
-                      {formData.codigoHex || '#ffffff'}
-                    </span>
-                  </div>
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-r from-green-500 to-green-600 rounded-xl">
+                <ArrowLeft className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Nova Cor</h1>
+                <p className="text-gray-600">Cadastrar uma nova cor no sistema</p>
               </div>
             </div>
-          </div>
-
-          <div className="flex justify-end space-x-4">
-            <Link
-              href="/cadastro/cores"
-              className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
-            >
-              {t('cancel')}
+            <Link href="/cadastro/cores">
+              <Button variant="outline">
+                ← Voltar para Cores
+              </Button>
             </Link>
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              {loading ? t('saving') : t('save')}
-            </button>
           </div>
-        </form>
-      </main>
+        </div>
+
+        {/* Form */}
+        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-t-lg">
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Dados da Cor
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Nome da Cor */}
+              <div className="space-y-2">
+                <Label htmlFor="nome" className="text-sm font-medium text-gray-700">
+                  Nome da Cor *
+                </Label>
+                <Input
+                  id="nome"
+                  type="text"
+                  value={formData.nome}
+                  onChange={(e) => handleInputChange('nome', e.target.value)}
+                  placeholder="Ex: Azul Marinho, Vermelho Cereja, Branco Puro"
+                  className="h-12 border-gray-300 focus:border-green-500 focus:ring-green-500"
+                  required
+                />
+                <p className="text-sm text-gray-500">
+                  Digite o nome completo e descritivo da cor
+                </p>
+              </div>
+
+              {/* Código Legado */}
+              <div className="space-y-2">
+                <Label htmlFor="legado" className="text-sm font-medium text-gray-700">
+                  Código Legado
+                </Label>
+                <Input
+                  id="legado"
+                  type="text"
+                  value={formData.legado}
+                  onChange={(e) => handleInputChange('legado', e.target.value)}
+                  placeholder="Ex: 38-AZUL, 15-VERMELHO, BRANCO-001"
+                  className="h-12 border-gray-300 focus:border-green-500 focus:ring-green-500"
+                />
+                <p className="text-sm text-gray-500">
+                  Código de referência do sistema legado (opcional)
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-end gap-4 pt-6 border-t">
+                <Link href="/cadastro/cores">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-12 px-8 border-gray-300 hover:bg-gray-50"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Cancelar
+                  </Button>
+                </Link>
+                <Button
+                  type="submit"
+                  className="h-12 px-8 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+                  disabled={loading}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {loading ? 'Salvando...' : 'Salvar Cor'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Instructions */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-lg">Dicas para Cadastro</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Nome da Cor</h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Use nomes descritivos e completos</li>
+                  <li>• Inclua variações quando necessário</li>
+                  <li>• Mantenha consistência na nomenclatura</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Código Legado</h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Referência ao sistema anterior</li>
+                  <li>• Ajuda na migração de dados</li>
+                  <li>• Facilita rastreabilidade histórica</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

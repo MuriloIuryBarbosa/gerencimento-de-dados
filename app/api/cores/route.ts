@@ -19,13 +19,25 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { nome, codigoHex, codigoPantone } = body;
+    const { nome, legado, ativo = true } = body;
+
+    // Verificar se o nome já existe
+    const existingCor = await prisma.cor.findFirst({
+      where: { nome: nome.trim() }
+    });
+
+    if (existingCor) {
+      return NextResponse.json(
+        { error: 'Já existe uma cor com este nome' },
+        { status: 400 }
+      );
+    }
 
     const cor = await prisma.cor.create({
       data: {
-        nome,
-        codigoHex,
-        codigoPantone
+        nome: nome.trim(),
+        legado: legado?.trim() || null,
+        ativo
       }
     });
 
