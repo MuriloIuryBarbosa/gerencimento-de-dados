@@ -6,20 +6,17 @@ export async function GET() {
     const [
       totalUsuarios,
       totalEmpresas,
-      totalTabelas,
-      totalPermissoes
+      totalPermissoesUsuario
     ] = await Promise.all([
       prisma.usuario.count(),
       prisma.empresa.count(),
-      prisma.tabelaDinamica.count(),
-      prisma.permissao.count()
+      prisma.usuarioPermissao.count()
     ]);
 
     return NextResponse.json({
       totalUsuarios,
       totalEmpresas,
-      totalTabelas,
-      totalPermissoes
+      totalPermissoesUsuario
     });
   } catch (error) {
     console.error('Erro ao buscar estatísticas:', error);

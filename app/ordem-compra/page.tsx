@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useLanguage } from "../../components/LanguageContext";
+import { useLanguage } from "@/components/LanguageContext";
 
 interface OrdemCompra {
   id: string;

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Upload, Search, Edit, Eye, Building2, Phone, Mail, MapPin } from "lucide-react";
 import Link from "next/link";
-import { useLanguage } from "../../../components/LanguageContext";
+import { useLanguage } from "@/components/LanguageContext";
 
 interface Fornecedor {
   id: number;

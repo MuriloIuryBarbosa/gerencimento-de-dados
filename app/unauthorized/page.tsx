@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { ShieldX, ArrowLeft, Home } from 'lucide-react';
-import { useLanguage } from '../../components/LanguageContext';
+import { useLanguage } from '@/components/LanguageContext';
 
 export default function UnauthorizedPage() {
   const router = useRouter();

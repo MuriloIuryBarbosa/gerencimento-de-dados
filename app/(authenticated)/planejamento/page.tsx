@@ -1,6 +1,6 @@
 "use client";
 
-import { useLanguage } from "../../components/LanguageContext";
+import { useLanguage } from "@/components/LanguageContext";
 import { useEffect, useState } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Link from "next/link";

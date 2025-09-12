@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, User, Mail, Briefcase, Shield, Save, Edit } from 'lucide-react';
-import { useLanguage } from '../../components/LanguageContext';
+import { useLanguage } from '@/components/LanguageContext';
 import { useUsuarioAtual } from '../../components/useUsuarioAtual';
 
 interface UsuarioPerfil {

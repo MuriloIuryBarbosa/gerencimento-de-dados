@@ -6,11 +6,7 @@ export async function GET() {
     const usuarios = await prisma.usuario.findMany({
       include: {
         empresa: true,
-        permissoes: {
-          include: {
-            permissao: true
-          }
-        }
+        permissoes: true
       },
       orderBy: { createdAt: 'desc' }
     });
