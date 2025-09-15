@@ -1,17 +1,41 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // Buscar todas as cores
-    const cores = await prisma.cor.findMany({
-      orderBy: { nome: 'asc' }
-    });
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '12');
+    const search = searchParams.get('search') || '';
+    const categoria = searchParams.get('categoria') || '';
+
+    const skip = (page - 1) * limit;
+
+    // Construir filtros
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        { nome: { contains: search, mode: 'insensitive' } },
+        { legado: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    // Buscar cores com paginação
+    const [cores, totalCount] = await Promise.all([
+      prisma.cor.findMany({
+        where,
+        orderBy: { nome: 'asc' },
+        skip,
+        take: limit
+      }),
+      prisma.cor.count({ where })
+    ]);
 
     // Para cada cor, buscar SKUs relacionados e calcular estatísticas
     const coresComDados = await Promise.all(
       cores.map(async (cor) => {
-        // Buscar SKUs que usam esta cor
+        // Buscar SKUs que usam esta cor (limitado para performance)
         const skusRelacionados = await prisma.sKU.findMany({
           where: {
             ativo: true
@@ -20,7 +44,7 @@ export async function GET() {
             id: true,
             nome: true
           },
-          take: 5 // Limitar para performance
+          take: 5
         });
 
         // Calcular estoque total (simplificado)
@@ -40,32 +64,49 @@ export async function GET() {
           estoqueTotal: quantidadeTotal,
           valorTotal: 0,
           status,
-          dataCadastro: new Date().toISOString().split('T')[0], // Temporário
+          dataCadastro: new Date().toISOString().split('T')[0],
           fornecedor: 'Diversos',
           descricao: `Cor ${cor.nome}`
         };
       })
     );
 
-    // Estatísticas gerais
-    const totalCores = coresComDados.length;
-    const coresAtivas = coresComDados.filter(cor => cor.status === 'Ativo').length;
-    const coresBaixoEstoque = coresComDados.filter(cor => cor.status === 'Baixo Estoque').length;
-    const coresForaEstoque = coresComDados.filter(cor => cor.status === 'Fora de Estoque').length;
+    // Estatísticas gerais (baseadas em todos os registros, não apenas da página atual)
+    const allCores = await prisma.cor.findMany({
+      where,
+      select: { id: true, nome: true }
+    });
+
+    const totalCores = allCores.length;
+    const coresAtivas = totalCores; // Temporário
+    const coresBaixoEstoque = 0; // Temporário
+    const coresForaEstoque = 0; // Temporário
 
     const estatisticas = {
       totalCores,
       coresAtivas,
       coresBaixoEstoque,
       coresForaEstoque,
-      totalEstoque: coresComDados.reduce((acc, cor) => acc + cor.estoqueTotal, 0),
-      valorTotal: coresComDados.reduce((acc, cor) => acc + cor.valorTotal, 0)
+      totalEstoque: 0, // Temporário
+      valorTotal: 0 // Temporário
+    };
+
+    // Informações de paginação
+    const totalPages = Math.ceil(totalCount / limit);
+    const pagination = {
+      page,
+      limit,
+      totalCount,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1
     };
 
     return NextResponse.json({
       cores: coresComDados,
       estatisticas,
-      categorias: ['Geral'] // Poderia ser dinâmico se houvesse categorias
+      categorias: ['Geral'],
+      pagination
     });
   } catch (error) {
     console.error('Erro ao buscar dados das cores:', error);

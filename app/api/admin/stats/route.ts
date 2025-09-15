@@ -1,23 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from 'next/server';
+import { UserService } from '@/services';
 
 export async function GET() {
   try {
-    const [
-      totalUsuarios,
-      totalEmpresas,
-      totalPermissoesUsuario
-    ] = await Promise.all([
-      prisma.usuario.count(),
-      prisma.empresa.count(),
-      prisma.usuarioPermissao.count()
-    ]);
-
-    return NextResponse.json({
-      totalUsuarios,
-      totalEmpresas,
-      totalPermissoesUsuario
-    });
+    const stats = await UserService.getStats();
+    return NextResponse.json(stats);
   } catch (error) {
     console.error('Erro ao buscar estatísticas:', error);
     return NextResponse.json(

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,86 +7,232 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Modelo de Usuário para Autenticação
 model Usuario {
-  id            Int       @id @default(autoincrement())
-  nome          String
-  email         String    @unique
-  senha         String
-  cargo         String?
-  departamento  String?
-  empresaId     Int?
-  isAdmin       Boolean   @default(false)
-  isSuperAdmin  Boolean   @default(false)
-  ativo         Boolean   @default(true)
-  ultimoAcesso  DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           Int                  @id @default(autoincrement())
+  nome         String
+  email        String               @unique
+  senha        String
+  cargo        String?
+  departamento String?
+  empresaId    Int?
+  isAdmin      Boolean              @default(false)
+  isSuperAdmin Boolean              @default(false)
+  ativo        Boolean              @default(true)
+  ultimoAcesso DateTime?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  resetTokens  PasswordResetToken[]
+  sessoes      SessaoUsuario[]
+  permissoes   UsuarioPermissao[]
+  empresa      Empresa?             @relation(fields: [empresaId], references: [id])
 
-  empresa       Empresa?  @relation(fields: [empresaId], references: [id])
-  permissoes    UsuarioPermissao[]
-  resetTokens   PasswordResetToken[]
-  sessoes       SessaoUsuario[]
-
+  @@index([empresaId], map: "usuarios_empresaId_fkey")
   @@map("usuarios")
 }
 
-// Empresa (estrutura básica)
 model Empresa {
-  id          Int       @id @default(autoincrement())
-  nome        String    @unique
-  cnpj        String?   @unique
-  endereco    String?
-  telefone    String?
-  email       String?
-  ativo       Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  usuarios    Usuario[]
+  id        Int       @id @default(autoincrement())
+  nome      String    @unique
+  cnpj      String?   @unique
+  endereco  String?
+  telefone  String?
+  email     String?
+  ativo     Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  usuarios  Usuario[]
 
   @@map("empresas")
 }
 
-// Permissões do Usuário
 model UsuarioPermissao {
-  id         Int      @id @default(autoincrement())
-  usuarioId  Int
-  permissao  String   // Ex: "read", "write", "admin", etc.
-  recurso    String   // Ex: "usuarios", "cores", "skus", etc.
-  createdAt  DateTime @default(now())
-
-  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  id        Int      @id @default(autoincrement())
+  usuarioId Int
+  permissao String
+  recurso   String
+  createdAt DateTime @default(now())
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
   @@unique([usuarioId, permissao, recurso])
   @@map("usuario_permissoes")
 }
 
-// Token para Recuperação de Senha
 model PasswordResetToken {
-  id         Int      @id @default(autoincrement())
-  usuarioId  Int
-  token      String   @unique
-  expiresAt  DateTime
-  used       Boolean  @default(false)
-  createdAt  DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  usuarioId Int
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
-  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-
+  @@index([usuarioId], map: "password_reset_tokens_usuarioId_fkey")
   @@map("password_reset_tokens")
 }
 
-// Sessão do Usuário (opcional, para controle de sessões ativas)
 model SessaoUsuario {
-  id         Int      @id @default(autoincrement())
-  usuarioId  Int
-  token      String   @unique
-  expiresAt  DateTime
-  ipAddress  String?
-  userAgent  String?
-  createdAt  DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  usuarioId Int
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
-  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-
+  @@index([usuarioId], map: "sessao_usuarios_usuarioId_fkey")
   @@map("sessao_usuarios")
+}
+
+model Cor {
+  id        Int      @id @default(autoincrement())
+  nome      String   @unique
+  legado    String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  skus      SKU[]
+
+  @@map("cores")
+}
+
+model Familia {
+  id        Int      @id @default(autoincrement())
+  codigo    String   @unique
+  nome      String
+  legado    String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  skus      SKU[]
+
+  @@map("familias")
+}
+
+model Tamanho {
+  id        Int      @id @default(autoincrement())
+  nome      String   @unique
+  legado    String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  skus      SKU[]
+
+  @@map("tamanhos")
+}
+
+model Deposito {
+  id        Int      @id @default(autoincrement())
+  nome      String   @unique
+  legado    String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  skus      SKU[]
+
+  @@map("depositos")
+}
+
+model UNEG {
+  id        Int      @id @default(autoincrement())
+  nome      String   @unique
+  legado    String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  skus      SKU[]
+
+  @@map("unegs")
+}
+
+model SKU {
+  id         Int       @id @default(autoincrement())
+  codigo     String    @unique
+  nome       String
+  corId      Int?
+  familiaId  Int?
+  tamanhoId  Int?
+  depositoId Int?
+  unegId     Int?
+  ativo      Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  cor        Cor?      @relation(fields: [corId], references: [id])
+  deposito   Deposito? @relation(fields: [depositoId], references: [id])
+  familia    Familia?  @relation(fields: [familiaId], references: [id])
+  tamanho    Tamanho?  @relation(fields: [tamanhoId], references: [id])
+  uneg       UNEG?     @relation(fields: [unegId], references: [id])
+
+  @@index([corId], map: "skus_corId_fkey")
+  @@index([depositoId], map: "skus_depositoId_fkey")
+  @@index([familiaId], map: "skus_familiaId_fkey")
+  @@index([tamanhoId], map: "skus_tamanhoId_fkey")
+  @@index([unegId], map: "skus_unegId_fkey")
+  @@map("skus")
+}
+
+model Representante {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String?  @unique
+  telefone  String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("representantes")
+}
+
+model Cliente {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  cnpj      String?  @unique
+  email     String?
+  telefone  String?
+  endereco  String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("clientes")
+}
+
+model Fornecedor {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  cnpj      String?  @unique
+  email     String?
+  telefone  String?
+  endereco  String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("fornecedores")
+}
+
+model Transportadora {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  cnpj      String?  @unique
+  email     String?
+  telefone  String?
+  endereco  String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("transportadoras")
+}
+
+model TabelaDinamica {
+  id        Int      @id @default(autoincrement())
+  nome      String   @unique
+  descricao String?
+  estrutura Json?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tabelas_dinamicas")
 }

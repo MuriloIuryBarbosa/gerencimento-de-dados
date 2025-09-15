@@ -9,12 +9,11 @@ import Link from 'next/link'
 
 interface Tamanho {
   id: number
-  codigo: string
   nome: string
-  descricao: string | null
-  ordem: number | null
+  legado: string | null
   ativo: boolean
   createdAt: string
+  updatedAt: string
   _count?: {
     skus: number
   }
@@ -95,17 +94,13 @@ export function TamanhosTable() {
                         {tamanho.ativo ? 'Ativo' : 'Inativo'}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">
-                      Código: {tamanho.codigo}
-                    </p>
-                    {tamanho.descricao && (
-                      <p className="text-sm text-gray-700 mb-2">
-                        {tamanho.descricao}
+                    {tamanho.legado && (
+                      <p className="text-sm text-gray-600 mb-2">
+                        Código Legado: {tamanho.legado}
                       </p>
                     )}
                     <div className="flex items-center gap-4 text-sm text-gray-500">
                       <span>SKUs: {tamanho._count?.skus || 0}</span>
-                      {tamanho.ordem && <span>Ordem: {tamanho.ordem}</span>}
                       <span>Criado em: {new Date(tamanho.createdAt).toLocaleDateString('pt-BR')}</span>
                     </div>
                   </div>

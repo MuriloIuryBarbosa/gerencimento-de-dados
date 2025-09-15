@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
 
 export async function GET() {
   try {
-    const session = await getServerSession()
-    if (!session) {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-    }
-
     const tamanhos = await prisma.tamanho.findMany({
       include: {
         _count: {
@@ -34,39 +28,33 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession()
-    if (!session) {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-    }
-
     const body = await request.json()
-    const { codigo, nome, descricao, ativo = true } = body
+    const { nome, legado, ativo = true } = body
 
-    // Validações
-    if (!codigo || !nome) {
+    // Validações - apenas nome é obrigatório
+    if (!nome || nome.trim() === '') {
       return NextResponse.json(
-        { error: 'Código e nome são obrigatórios' },
+        { error: 'Nome é obrigatório' },
         { status: 400 }
       )
     }
 
-    // Verificar se código já existe
-    const existingTamanho = await prisma.tamanho.findUnique({
-      where: { codigo }
+    // Verificar se nome já existe
+    const existingTamanho = await prisma.tamanho.findFirst({
+      where: { nome: nome.trim() }
     })
 
     if (existingTamanho) {
       return NextResponse.json(
-        { error: 'Já existe um tamanho com este código' },
+        { error: 'Já existe um tamanho com este nome' },
         { status: 400 }
       )
     }
 
     const tamanho = await prisma.tamanho.create({
       data: {
-        codigo,
-        nome,
-        descricao,
+        nome: nome.trim(),
+        legado: legado ? legado.trim() : null,
         ativo
       }
     })

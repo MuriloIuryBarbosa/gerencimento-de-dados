@@ -1,6 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const id = parseInt(params.id);
+
+    if (isNaN(id)) {
+      return NextResponse.json(
+        { error: 'ID inválido' },
+        { status: 400 }
+      );
+    }
+
+    const cor = await prisma.cor.findUnique({
+      where: { id }
+    });
+
+    if (!cor) {
+      return NextResponse.json(
+        { error: 'Cor não encontrada' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(cor);
+
+  } catch (error) {
+    console.error('Erro ao buscar cor:', error);
+    return NextResponse.json(
+      { error: 'Erro interno do servidor' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }

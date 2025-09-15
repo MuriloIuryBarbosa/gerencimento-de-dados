@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import { Metadata } from 'next'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, Ruler } from 'lucide-react'
+import { Plus, Ruler, Upload } from 'lucide-react'
 import Link from 'next/link'
 import { TamanhosTable } from '@/components/tamanhos/TamanhosTable'
 import { TamanhosStats } from '@/components/tamanhos/TamanhosStats'
@@ -27,12 +27,20 @@ export default function TamanhosPage() {
               Gerencie os tamanhos disponíveis para seus produtos
             </p>
           </div>
-          <Link href="/executivo/tamanhos/nova">
-            <Button className="bg-white text-green-600 hover:bg-green-50">
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Tamanho
-            </Button>
-          </Link>
+          <div className="flex gap-3">
+            <Link href="/executivo/tamanhos/upload">
+              <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                <Upload className="h-4 w-4 mr-2" />
+                Upload CSV
+              </Button>
+            </Link>
+            <Link href="/executivo/tamanhos/nova">
+              <Button className="bg-white text-green-600 hover:bg-green-50">
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Tamanho
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
