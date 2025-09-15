@@ -4,8 +4,10 @@ const nextConfig: NextConfig = {
   // Configurações para melhorar performance com arquivos grandes
   experimental: {
     // Aumentar limite de payload para uploads grandes
-    serverComponentsExternalPackages: [],
   },
+
+  // Pacotes externos para server components
+  serverExternalPackages: [],
 
   // Configurações do servidor
   serverRuntimeConfig: {

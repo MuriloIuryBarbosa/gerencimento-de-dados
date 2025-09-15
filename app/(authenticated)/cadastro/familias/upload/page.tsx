@@ -1,135 +1,276 @@
-"use client";
+'use client'
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import CSVUpload from '@/components/CSVUpload';
+import { useState } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Upload, FileText, AlertCircle, CheckCircle, XCircle } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import Link from 'next/link'
+import CSVUpload from '@/components/CSVUpload'
 
-export default function UploadFamilias() {
-  const [isImporting, setIsImporting] = useState(false);
+interface UploadResult {
+  success: boolean
+  imported: number
+  errors: string[]
+  duplicates: string[]
+  message: string
+  processingTime?: number
+}
 
+export default function FamiliasUploadPage() {
+  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+
+  // Configuração dos campos disponíveis para famílias
   const availableFields = [
-    { key: 'codigo', label: 'Código', required: true, type: 'number' as const },
-    { key: 'nome', label: 'Nome', required: true, type: 'string' as const },
-    { key: 'descricao', label: 'Descrição', required: false, type: 'string' as const },
-    { key: 'ativo', label: 'Ativo', required: false, type: 'boolean' as const }
-  ];
-
-  const sampleData = [
     {
-      codigo: 1001,
-      nome: 'Algodão Premium',
-      descricao: 'Família de tecidos em algodão de alta qualidade',
-      ativo: true
+      key: 'codigo',
+      label: 'Código da Família',
+      required: true,
+      type: 'string' as const
     },
     {
-      codigo: 1002,
-      nome: 'Poliéster Sintético',
-      descricao: 'Tecidos sintéticos resistentes e duráveis',
-      ativo: true
+      key: 'familia',
+      label: 'Nome da Família',
+      required: true,
+      type: 'string' as const
     },
     {
-      codigo: 1003,
-      nome: 'Mistura Algodão/Poliéster',
-      descricao: 'Tecidos com mistura de fibras naturais e sintéticas',
-      ativo: true
+      key: 'legado',
+      label: 'Dados Legado',
+      required: false,
+      type: 'string' as const
     }
-  ];
+  ]
 
+  // Função de importação
   const handleImport = async (data: any[], mappings: any[]) => {
-    setIsImporting(true);
-
     try {
+      setIsUploading(true)
+      setUploadResult(null)
+
       const response = await fetch('/api/familias/bulk-import', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          data,
-          mappings
-        }),
-      });
+        body: JSON.stringify({ data, mappings }),
+      })
 
-      const result = await response.json();
+      const result = await response.json()
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro na importação');
-      }
+      setUploadResult({
+        success: result.success,
+        imported: result.imported,
+        errors: result.errors || [],
+        duplicates: result.duplicates || [],
+        message: result.message,
+        processingTime: result.processingTime
+      })
 
-      return result;
+      setIsUploading(false)
+      return result
     } catch (error) {
-      console.error('Erro na importação:', error);
-      throw error;
-    } finally {
-      setIsImporting(false);
+      console.error('Erro na importação:', error)
+      const errorResult = {
+        success: false,
+        message: 'Erro ao conectar com o servidor',
+        imported: 0,
+        errors: ['Erro de conexão'],
+        duplicates: []
+      }
+      setUploadResult(errorResult)
+      setIsUploading(false)
+      return errorResult
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl">
-                <ArrowLeft className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Upload de Famílias em Massa</h1>
-                <p className="text-gray-600">Importe múltiplas famílias através de arquivo CSV</p>
-              </div>
-            </div>
-            <Link href="/cadastro/familias">
-              <Button variant="outline">
-                ← Voltar para Famílias
-              </Button>
-            </Link>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Upload className="h-8 w-8" />
+              Upload em Massa - Famílias
+            </h1>
+            <p className="text-purple-100 mt-2">
+              Importe múltiplas famílias através de arquivo CSV
+            </p>
           </div>
-        </div>
-
-        {/* CSV Upload Component */}
-        <CSVUpload
-          title="Importar Famílias via CSV"
-          moduleName="familias"
-          availableFields={availableFields}
-          onImport={handleImport}
-          sampleData={sampleData}
-        />
-
-        {/* Instructions */}
-        <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Instruções para Importação</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-medium text-gray-900 mb-2">Campos Obrigatórios</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Código (único e numérico)</li>
-                <li>• Nome da Família</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-medium text-gray-900 mb-2">Campos Opcionais</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Descrição</li>
-                <li>• Status Ativo</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">Dicas Importantes</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Use o botão "Baixar Exemplo CSV" para ver o formato correto</li>
-              <li>• Certifique-se de que os códigos são únicos e numéricos</li>
-              <li>• Para campos booleanos, use: true/false, 1/0, sim/não</li>
-              <li>• O sistema irá validar os dados antes da importação</li>
-            </ul>
-          </div>
+          <Link href="/cadastro/familias">
+            <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+              Voltar para Famílias
+            </Button>
+          </Link>
         </div>
       </div>
+
+      {/* Instructions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Instruções para Upload
+          </CardTitle>
+          <CardDescription>
+            Siga estas instruções para importar famílias corretamente
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <h4 className="font-semibold mb-2">Formato do CSV:</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Arquivo deve estar em formato CSV (UTF-8)</li>
+                <li>• Primeira linha deve conter os cabeçalhos</li>
+                <li>• Use ponto e vírgula (;) ou vírgula (,) como separador</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Colunas obrigatórias:</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• <strong>Codigo Familia</strong>: Código da família (obrigatório)</li>
+                <li>• <strong>Familia</strong>: Nome da família (obrigatório)</li>
+                <li>• <strong>Familia</strong>: Nome legado (opcional)</li>
+              </ul>
+            </div>
+          </div>
+
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Importante:</strong> Os campos "Codigo Familia" e "Familia" são obrigatórios.
+              Registros duplicados (mesmo código) serão ignorados automaticamente.
+            </AlertDescription>
+          </Alert>
+
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h4 className="font-semibold mb-2">Exemplo de arquivo CSV:</h4>
+            <pre className="text-xs text-gray-700 whitespace-pre-wrap">
+{`CHAVE SKU;Codigo Familia;Familia
+4565380;4565;MICROFIBRA 65G/M2 2.40M ESTAMPADA
+4565370;4565;MICROFIBRA 65G/M2 2.40M ESTAMPADA
+4565360;4565;MICROFIBRA 65G/M2 2.40M ESTAMPADA`}
+            </pre>
+            <div className="mt-3">
+              <a
+                href="/estoque/familias/famialias_mass_upload.csv"
+                download
+                className="inline-flex items-center px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Baixar Arquivo de Exemplo
+              </a>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Upload Component */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Selecionar Arquivo CSV</CardTitle>
+          <CardDescription>
+            Escolha o arquivo CSV contendo as famílias a serem importadas
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CSVUpload
+            title="Upload em Massa - Famílias"
+            moduleName="familias"
+            availableFields={availableFields}
+            onImport={handleImport}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Results */}
+      {uploadResult && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {uploadResult.success ? (
+                <CheckCircle className="h-5 w-5 text-green-600" />
+              ) : (
+                <XCircle className="h-5 w-5 text-red-600" />
+              )}
+              Resultado da Importação
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Alert className={uploadResult.success ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+              <AlertDescription className={uploadResult.success ? 'text-green-800' : 'text-red-800'}>
+                {uploadResult.message}
+                {uploadResult.processingTime && (
+                  <span className="block mt-1 text-sm">
+                    Tempo de processamento: {Math.round(uploadResult.processingTime / 1000)}s
+                  </span>
+                )}
+              </AlertDescription>
+            </Alert>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">{uploadResult.imported}</div>
+                <div className="text-sm text-blue-800">Importadas</div>
+              </div>
+              <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                <div className="text-2xl font-bold text-yellow-600">{uploadResult.duplicates.length}</div>
+                <div className="text-sm text-yellow-800">Duplicadas</div>
+              </div>
+              <div className="text-center p-4 bg-red-50 rounded-lg">
+                <div className="text-2xl font-bold text-red-600">{uploadResult.errors.length}</div>
+                <div className="text-sm text-red-800">Erros</div>
+              </div>
+            </div>
+
+            {uploadResult.duplicates.length > 0 && (
+              <div>
+                <h4 className="font-semibold mb-2 text-yellow-800">Famílias duplicadas encontradas:</h4>
+                <div className="max-h-32 overflow-y-auto bg-yellow-50 p-3 rounded border">
+                  <ul className="text-sm text-yellow-800 space-y-1">
+                    {uploadResult.duplicates.map((duplicate, index) => (
+                      <li key={index}>• {duplicate}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {uploadResult.errors.length > 0 && (
+              <div>
+                <h4 className="font-semibold mb-2 text-red-800">Erros encontrados:</h4>
+                <div className="max-h-32 overflow-y-auto bg-red-50 p-3 rounded border">
+                  <ul className="text-sm text-sm text-red-800 space-y-1">
+                    {uploadResult.errors.map((error, index) => (
+                      <li key={index}>• {error}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-4">
+              <Link href="/cadastro/familias">
+                <Button>
+                  Ver Famílias Cadastradas
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setUploadResult(null)
+                  setIsUploading(false)
+                }}
+              >
+                Fazer Novo Upload
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
-  );
+  )
 }

@@ -73,7 +73,7 @@ export function FamiliasTable() {
             <p className="text-gray-500 text-center mb-4">
               Comece criando sua primeira família de produtos
             </p>
-            <Link href="/executivo/familias/nova">
+            <Link href="/cadastro/familias/nova">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
                 Criar Primeira Família
@@ -108,12 +108,12 @@ export function FamiliasTable() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Link href={`/executivo/familias/${familia.id}`}>
+                    <Link href={`/cadastro/familias/${familia.id}`}>
                       <Button variant="outline" size="sm">
                         <Eye className="h-4 w-4" />
                       </Button>
                     </Link>
-                    <Link href={`/executivo/familias/${familia.id}/editar`}>
+                    <Link href={`/cadastro/familias/${familia.id}/editar`}>
                       <Button variant="outline" size="sm">
                         <Edit className="h-4 w-4" />
                       </Button>

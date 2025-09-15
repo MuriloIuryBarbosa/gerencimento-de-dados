@@ -128,7 +128,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
             // Mapear campos - dados já vêm transformados do frontend
             mappings.forEach(mapping => {
-              const value = row[mapping.dbField]; // Agora usa dbField diretamente
+              const value = row[mapping.csvColumn]; // Agora usa csvColumn para acessar dados do CSV
               if (value !== undefined && value !== null && value !== '') {
                 // Garantir que o valor seja tratado como string UTF-8
                 const stringValue = value?.toString() || '';
@@ -186,18 +186,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 console.log('Executando query para família...');
                 const familia = await prisma.familia.findFirst({
                   where: {
-                    OR: [
-                      { codigo: parseInt(skuData.familiaCodigo) },
-                      { nome: skuData.familiaCodigo }
-                    ]
+                    codigo: skuData.familiaCodigo
                   }
                 });
                 console.log(`Query de família executada: ${familia ? 'Encontrada' : 'Não encontrada'}`);
 
                 if (familia) {
                   skuData.familiaId = familia.id;
-                  skuData.familiaNome = familia.nome;
-                  console.log(`Família encontrada: ${familia.nome} (ID: ${familia.id})`);
+                  skuData.familiaNome = familia.familia;
+                  console.log(`Família encontrada: ${familia.familia} (ID: ${familia.id})`);
                 } else {
                   // Se não encontrou, criar uma nova família
                   console.log(`Família não encontrada, criando nova: ${skuData.familiaCodigo}`);
@@ -205,14 +202,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                   const novaFamilia = await prisma.familia.create({
                     data: {
                       codigo: parseInt(skuData.familiaCodigo) || 0,
-                      nome: skuData.familiaNome || skuData.familiaCodigo,
-                      descricao: `Família criada automaticamente via importação - ${skuData.familiaCodigo}`
+                      familia: skuData.familiaNome || skuData.familiaCodigo,
+                      legado: `Família criada automaticamente via importação - ${skuData.familiaCodigo}`
                     }
                   });
-                  console.log(`Create de família executado: ${novaFamilia.nome} (ID: ${novaFamilia.id})`);
+                  console.log(`Create de família executado: ${novaFamilia.familia} (ID: ${novaFamilia.id})`);
                   skuData.familiaId = novaFamilia.id;
-                  skuData.familiaNome = novaFamilia.nome;
-                  console.log(`Nova família criada: ${novaFamilia.nome} (ID: ${novaFamilia.id})`);
+                  skuData.familiaNome = novaFamilia.familia;
+                  console.log(`Nova família criada: ${novaFamilia.familia} (ID: ${novaFamilia.id})`);
                 }
               } catch (error) {
                 console.warn(`Erro ao resolver família ${skuData.familiaCodigo}:`, error);

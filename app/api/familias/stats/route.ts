@@ -9,10 +9,8 @@ export async function GET() {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const [total, ativas, inativas, comProdutos] = await Promise.all([
+    const [total, comProdutos] = await Promise.all([
       prisma.familia.count(),
-      prisma.familia.count({ where: { ativo: true } }),
-      prisma.familia.count({ where: { ativo: false } }),
       prisma.familia.count({
         where: {
           skus: {
@@ -24,8 +22,6 @@ export async function GET() {
 
     return NextResponse.json({
       total,
-      ativas,
-      inativas,
       comProdutos
     })
   } catch (error) {

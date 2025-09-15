@@ -37,7 +37,7 @@ export function FamiliaForm() {
       })
 
       if (response.ok) {
-        router.push('/executivo/familias')
+        router.push('/cadastro/familias')
       } else {
         const data = await response.json()
         setError(data.error || 'Erro ao criar família')
@@ -121,7 +121,7 @@ export function FamiliaForm() {
       </div>
 
       <div className="flex gap-4">
-        <Link href="/executivo/familias">
+        <Link href="/cadastro/familias">
           <Button type="button" variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar

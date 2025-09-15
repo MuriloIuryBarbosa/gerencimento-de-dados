@@ -138,6 +138,14 @@ export default function CSVUpload({ title, moduleName, availableFields, onImport
           return;
         }
 
+        // Debug: Log PapaParse results
+        console.log('=== PAPAPARSE RESULTS ===');
+        console.log('Meta fields:', results.meta.fields);
+        console.log('Data length:', results.data.length);
+        console.log('First row:', results.data[0]);
+        console.log('Second row:', results.data[1]);
+        console.log('========================');
+
         setCsvData(results.data);
         setCsvHeaders(results.meta.fields);
         setCurrentStep('mapping');
@@ -239,6 +247,17 @@ export default function CSVUpload({ title, moduleName, availableFields, onImport
           const fieldConfig = availableFields.find(f => f.key === mapping.dbField);
           let value = row[mapping.csvColumn];
 
+          // Debug: Log mapping details
+          if (index < 3) {
+            console.log(`Mapping for row ${index}:`, {
+              csvColumn: mapping.csvColumn,
+              dbField: mapping.dbField,
+              rowKeys: Object.keys(row),
+              rowValue: row[mapping.csvColumn],
+              hasValue: row.hasOwnProperty(mapping.csvColumn)
+            });
+          }
+
           // Conversão de tipos
           if (fieldConfig?.type === 'number' && value) {
             value = parseFloat(value.toString().replace(',', '.'));
@@ -248,8 +267,19 @@ export default function CSVUpload({ title, moduleName, availableFields, onImport
 
           transformedRow[mapping.dbField] = value;
         });
+
+        // Debug: Log first few rows
+        if (index < 3) {
+          console.log(`Row ${index}:`, row);
+          console.log(`Transformed Row ${index}:`, transformedRow);
+        }
+
         return transformedRow;
       });
+
+      // Debug: Log transformed data summary
+      console.log('Transformed data sample:', transformedData.slice(0, 3));
+      console.log('Column mappings:', columnMappings);
 
       // Fase 3: Envio para processamento
       setCurrentStatus('Enviando dados para processamento...');

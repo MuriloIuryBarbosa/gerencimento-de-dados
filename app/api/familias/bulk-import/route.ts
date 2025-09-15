@@ -47,6 +47,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         );
       }
 
+      // Debug logs
+      console.log('=== DEBUG: Dados recebidos na API ===');
+      console.log('Data length:', data.length);
+      console.log('First 3 data items:', data.slice(0, 3));
+      console.log('Mappings:', mappings);
+      console.log('=====================================');
+
       console.log(`Iniciando importação de ${data.length} famílias...`);
 
       const results = {
@@ -107,13 +114,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             }
 
             // Preparar dados para inserção
-            const familiaData: any = {
-              ativo: true
-            };
+            const familiaData: any = {};
 
             // Mapear campos
             mappings.forEach(mapping => {
-              const value = row[mapping.dbField];
+              const value = row[mapping.csvColumn];
               if (value !== undefined && value !== null && value !== '') {
                 const stringValue = value?.toString() || '';
 
@@ -122,8 +127,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                   case 'codigo':
                     familiaData.codigo = stringValue.trim();
                     break;
-                  case 'nome':
-                    familiaData.nome = stringValue.trim();
+                  case 'familia':
+                    familiaData.familia = stringValue.trim();
                     break;
                   case 'legado':
                     familiaData.legado = stringValue.trim() || null;
@@ -133,6 +138,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             });
 
             console.log(`Dados finais antes da criação para linha ${rowNumber}:`, JSON.stringify(familiaData, null, 2));
+
+            // Validar campos obrigatórios
+            if (!familiaData.codigo || !familiaData.familia) {
+              results.errors.push(`Linha ${rowNumber}: Campos obrigatórios 'codigo' e 'familia' são necessários`);
+              continue;
+            }
 
             // Criar família com timeout individual
             console.log(`Iniciando criação da família para linha ${rowNumber}...`);

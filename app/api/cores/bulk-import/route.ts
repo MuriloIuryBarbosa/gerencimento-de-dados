@@ -113,7 +113,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
             // Mapear campos
             mappings.forEach(mapping => {
-              const value = row[mapping.dbField];
+              const value = row[mapping.csvColumn];
               if (value !== undefined && value !== null && value !== '') {
                 const stringValue = value?.toString() || '';
 

@@ -99,14 +99,11 @@ model Cor {
 model Familia {
   id        Int      @id @default(autoincrement())
   codigo    String   @unique
-  nome      String
+  familia   String
   legado    String?
-  ativo     Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
   skus      SKU[]
 
-  @@map("familias")
+  @@map("familia")
 }
 
 model Tamanho {

@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
         // Mapear campos
         mappings.forEach(mapping => {
-          const value = row[mapping.dbField];
+          const value = row[mapping.csvColumn];
           if (value !== undefined && value !== null && value !== '') {
             // Garantir que o valor seja tratado como string UTF-8
             const stringValue = value?.toString() || '';

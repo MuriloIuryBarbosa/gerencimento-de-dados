@@ -18,7 +18,7 @@ export async function GET() {
         }
       },
       orderBy: {
-        nome: 'asc'
+        familia: 'asc'
       }
     })
 
@@ -40,12 +40,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { codigo, nome, descricao, ativo = true } = body
+    const { codigo, familia, legado } = body
 
     // Validações
-    if (!codigo || !nome) {
+    if (!codigo || !familia) {
       return NextResponse.json(
-        { error: 'Código e nome são obrigatórios' },
+        { error: 'Código e família são obrigatórios' },
         { status: 400 }
       )
     }
@@ -62,16 +62,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const familia = await prisma.familia.create({
+    const familiaCriada = await prisma.familia.create({
       data: {
         codigo,
-        nome,
-        descricao,
-        ativo
+        familia,
+        legado
       }
     })
 
-    return NextResponse.json(familia, { status: 201 })
+    return NextResponse.json(familiaCriada, { status: 201 })
   } catch (error) {
     console.error('Erro ao criar família:', error)
     return NextResponse.json(

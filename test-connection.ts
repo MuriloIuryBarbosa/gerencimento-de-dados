@@ -15,12 +15,12 @@ async function testConnection() {
     // Testar criação de uma família
     const testFamilia = await prisma.familia.create({
       data: {
-        codigo: 999999,
-        nome: 'TESTE CONEXAO',
-        descricao: 'Família de teste para verificar conexão'
+        codigo: '999999',
+        familia: 'TESTE CONEXAO',
+        legado: 'Família de teste para verificar conexão'
       }
     });
-    console.log(`✅ Família de teste criada: ${testFamilia.nome} (ID: ${testFamilia.id})`);
+    console.log(`✅ Família de teste criada: ${testFamilia.familia} (ID: ${testFamilia.id})`);
 
     // Limpar família de teste
     await prisma.familia.delete({
