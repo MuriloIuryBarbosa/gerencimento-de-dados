@@ -138,7 +138,20 @@ export class AuthService {
       // Buscar usuário completo
       const user = await prisma.usuario.findUnique({
         where: { id: payload.userId },
-        include: {
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          cargo: true,
+          departamento: true,
+          empresaId: true,
+          papelId: true,
+          isAdmin: true,
+          isSuperAdmin: true,
+          ativo: true,
+          ultimoAcesso: true,
+          createdAt: true,
+          updatedAt: true,
           empresa: true,
           permissoes: true
         }
@@ -161,6 +174,11 @@ export class AuthService {
 
       // Coletar permissões
       const permissions = this.collectUserPermissions(userWithPapel);
+
+      return {
+        ...user,
+        permissions
+      };
 
       return {
         ...user,
