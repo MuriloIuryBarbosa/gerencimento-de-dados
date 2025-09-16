@@ -15,6 +15,7 @@ model Usuario {
   cargo        String?
   departamento String?
   empresaId    Int?
+  papelId      Int?                 // Novo campo para papel padrão
   isAdmin      Boolean              @default(false)
   isSuperAdmin Boolean              @default(false)
   ativo        Boolean              @default(true)
@@ -25,8 +26,10 @@ model Usuario {
   sessoes      SessaoUsuario[]
   permissoes   UsuarioPermissao[]
   empresa      Empresa?             @relation(fields: [empresaId], references: [id])
+  papel        Papel?               @relation(fields: [papelId], references: [id])
 
   @@index([empresaId], map: "usuarios_empresaId_fkey")
+  @@index([papelId], map: "usuarios_papelId_fkey")
   @@map("usuarios")
 }
 
@@ -48,13 +51,41 @@ model Empresa {
 model UsuarioPermissao {
   id        Int      @id @default(autoincrement())
   usuarioId Int
-  permissao String
-  recurso   String
+  permissao String   // read, write, delete, admin
+  recurso   String   // menu, submenu, page, action
+  valor     String?  // específico do recurso (ex: cores, familias)
   createdAt DateTime @default(now())
   usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
-  @@unique([usuarioId, permissao, recurso])
+  @@unique([usuarioId, permissao, recurso, valor])
   @@map("usuario_permissoes")
+}
+
+model Papel {
+  id          Int              @id @default(autoincrement())
+  nome        String           @unique
+  descricao   String?
+  isSystem    Boolean          @default(false) // Papéis do sistema não podem ser deletados
+  ativo       Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  usuarios    Usuario[]
+  permissoes  PapelPermissao[]
+
+  @@map("papeis")
+}
+
+model PapelPermissao {
+  id        Int      @id @default(autoincrement())
+  papelId   Int
+  permissao String   // read, write, delete, admin
+  recurso   String   // menu, submenu, page, action
+  valor     String?  // específico do recurso (ex: cores, familias)
+  createdAt DateTime @default(now())
+  papel     Papel    @relation(fields: [papelId], references: [id], onDelete: Cascade)
+
+  @@unique([papelId, permissao, recurso, valor])
+  @@map("papel_permissoes")
 }
 
 model PasswordResetToken {

@@ -16,7 +16,7 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
   const { t, language, setLanguage } = useLanguage();
-  const { canAccessAdmin, loading: permissionsLoading } = useUserPermissions();
+  const { canAccessMenu, canAccessSubmenu, loading: permissionsLoading, canAccessAdmin } = useUserPermissions();
   const { usuario, loading: userLoading, papel, cargo } = useUsuarioAtual();
   const { logout } = useAuth();
   const pathname = usePathname();

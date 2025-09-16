@@ -10,6 +10,14 @@ export interface JWTPayload {
   email: string;
   isAdmin: boolean;
   isSuperAdmin: boolean;
+  papelId?: number;
+  permissions: string[];
+}
+
+export interface PermissionCheck {
+  permissao: string;
+  recurso: string;
+  valor?: string;
 }
 
 export class AuthService {
@@ -43,7 +51,12 @@ export class AuthService {
       where: { email },
       include: {
         empresa: true,
-        permissoes: true
+        permissoes: true,
+        papel: {
+          include: {
+            permissoes: true
+          }
+        }
       }
     });
 
@@ -62,19 +75,137 @@ export class AuthService {
       data: { ultimoAcesso: new Date() }
     });
 
+    // Coletar todas as permissões (papel + específicas do usuário)
+    const permissions = this.collectUserPermissions(user);
+
     // Remover senha do retorno
     const { senha, ...userWithoutPassword } = user;
 
-    return userWithoutPassword;
+    return {
+      ...userWithoutPassword,
+      permissions
+    };
   }
 
-  // Verificar permissões
-  static hasPermission(user: any, requiredPermission: string, resource: string): boolean {
-    if (user.isSuperAdmin) return true;
+  // Coletar todas as permissões do usuário (papel + específicas)
+  static collectUserPermissions(user: any): string[] {
+    const permissions: string[] = [];
 
-    return user.permissoes.some((perm: any) =>
-      (perm.permissao === requiredPermission || perm.permissao === 'admin') &&
-      (perm.recurso === resource || perm.recurso === 'todos')
+    // Super admin tem acesso total
+    if (user.isSuperAdmin) {
+      permissions.push('super_admin');
+      return permissions;
+    }
+
+    // Permissões do papel
+    if (user.papel?.permissoes) {
+      user.papel.permissoes.forEach((perm: any) => {
+        const permKey = `${perm.permissao}:${perm.recurso}${perm.valor ? `:${perm.valor}` : ''}`;
+        permissions.push(permKey);
+      });
+    }
+
+    // Permissões específicas do usuário (sobrescrevem as do papel)
+    if (user.permissoes) {
+      user.permissoes.forEach((perm: any) => {
+        const permKey = `${perm.permissao}:${perm.recurso}${perm.valor ? `:${perm.valor}` : ''}`;
+        // Se já existe, substitui; senão, adiciona
+        const existingIndex = permissions.findIndex(p => p.startsWith(`${perm.permissao}:${perm.recurso}`));
+        if (existingIndex >= 0) {
+          permissions[existingIndex] = permKey;
+        } else {
+          permissions.push(permKey);
+        }
+      });
+    }
+
+    return permissions;
+  }
+
+  // Verificar token de requisição (para APIs)
+  static async verifyRequest(request: any): Promise<any | null> {
+    try {
+      const authHeader = request.headers.get('authorization');
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return null;
+      }
+
+      const token = authHeader.substring(7);
+      const payload = this.verifyToken(token);
+
+      if (!payload) return null;
+
+      // Buscar usuário completo
+      const user = await prisma.usuario.findUnique({
+        where: { id: payload.userId },
+        include: {
+          empresa: true,
+          permissoes: true
+        }
+      });
+
+      if (!user || !user.ativo) return null;
+
+      // Buscar papel separadamente se existir
+      let papel = null;
+      if (user.papelId) {
+        papel = await prisma.papel.findUnique({
+          where: { id: user.papelId },
+          include: {
+            permissoes: true
+          }
+        });
+      }
+
+      const userWithPapel = { ...user, papel };
+
+      // Coletar permissões
+      const permissions = this.collectUserPermissions(userWithPapel);
+
+      return {
+        ...user,
+        permissions
+      };
+
+    } catch (error) {
+      return null;
+    }
+  }
+  static hasPermission(user: any, requiredPermission: string, resource: string, value?: string): boolean {
+    // Super admin tem acesso total
+    if (user.isSuperAdmin || user.permissions?.includes('super_admin')) return true;
+
+    // Verificar permissões do usuário
+    if (user.permissions) {
+      const requiredPerm = `${requiredPermission}:${resource}${value ? `:${value}` : ''}`;
+
+      // Verificar permissão exata
+      if (user.permissions.includes(requiredPerm)) return true;
+
+      // Verificar permissão genérica (sem valor específico)
+      if (value && user.permissions.includes(`${requiredPermission}:${resource}`)) return true;
+
+      // Verificar permissão admin para o recurso
+      if (user.permissions.includes(`admin:${resource}`)) return true;
+
+      // Verificar permissão admin geral
+      if (user.permissions.includes('admin:todos')) return true;
+    }
+
+    return false;
+  }
+
+  // Verificar múltiplas permissões (OU lógico)
+  static hasAnyPermission(user: any, permissions: PermissionCheck[]): boolean {
+    return permissions.some(perm =>
+      this.hasPermission(user, perm.permissao, perm.recurso, perm.valor)
+    );
+  }
+
+  // Verificar todas as permissões (E lógico)
+  static hasAllPermissions(user: any, permissions: PermissionCheck[]): boolean {
+    return permissions.every(perm =>
+      this.hasPermission(user, perm.permissao, perm.recurso, perm.valor)
     );
   }
 
