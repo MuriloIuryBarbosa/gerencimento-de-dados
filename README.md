@@ -46,6 +46,34 @@ gerenciamento-de-dados/
 - Relatórios visuais
 - Interface responsiva
 
+### 🔄 Sistema de Extração de Dados
+- Extração completa do banco MySQL em múltiplos formatos (JSON, CSV, SQL)
+- Scripts especializados para cada tabela com validação de relacionamentos
+- Sistema de backup automático com mysqldump e Prisma
+- Validação de integridade de dados e consistência referencial
+- Migração de dados entre ambientes (dev/prod)
+- Análise de performance e otimização de queries
+- Manutenção automática do banco (limpeza, otimização, índices)
+
+## 🗂️ Git LFS (Large File Storage)
+
+Este projeto utiliza Git LFS para gerenciar arquivos grandes de forma eficiente:
+
+### Arquivos gerenciados pelo LFS:
+- `*.sql` - Exports e scripts SQL (alguns >100MB)
+- `*.csv` - Arquivos de dados CSV
+- `*.txt` - Arquivos de texto grandes
+- `*.png` - Imagens e gráficos
+
+### Configuração automática:
+O arquivo `.gitattributes` configura automaticamente quais tipos de arquivo são gerenciados pelo LFS.
+
+### Benefícios:
+- Repositório mais leve e rápido
+- Histórico completo mantido
+- Downloads sob demanda dos arquivos grandes
+- Compatibilidade total com Git
+
 ## 🛠️ Instalação
 
 ### Pré-requisitos
@@ -87,10 +115,26 @@ gerenciamento-de-dados/
 
 ## 📋 Scripts Disponíveis
 
+### Scripts de Desenvolvimento
 - `npm run dev` - Servidor de desenvolvimento
 - `npm run build` - Build para produção
 - `npm run start` - Servidor de produção
 - `npm run lint` - Executar ESLint
+
+### Scripts de Extração de Dados
+- `node extract-data.js` - Extração completa do banco (JSON/CSV/SQL)
+- `node scripts/extract-usuarios.js` - Extração especializada de usuários
+- `node scripts/extract-skus.js` - Extração especializada de SKUs
+- `node scripts/backup-database.js` - Backup completo do banco
+- `node scripts/validate-data.js` - Validação de integridade de dados
+- `node scripts/maintenance-database.js` - Manutenção automática
+- `node scripts/migrate-database.js` - Migração entre ambientes
+- `node scripts/optimize-queries.js` - Análise e otimização de performance
+
+### Scripts Python
+- `python scripts/export_database_sql.py` - Export SQL via Python
+- `python scripts/process_estoque.py` - Processamento de dados de estoque
+- `python scripts/verificar_banco.py` - Verificação de estrutura do banco
 
 ## 📚 Documentação
 
@@ -98,6 +142,15 @@ gerenciamento-de-dados/
 - `docs/lembretes.txt` - Funcionalidades pendentes
 - `docs/lembretes_2.txt` - Requisitos de UX/UI
 - `docs/mysql-setup.md` - Configuração do MySQL
+- `scripts/README.md` - Documentação completa dos scripts de extração
+
+### Scripts de Extração
+Para documentação detalhada dos scripts de extração, consulte `scripts/README.md` que inclui:
+- Guia de uso de cada script
+- Exemplos de comandos
+- Estrutura dos arquivos exportados
+- Configurações disponíveis
+- Troubleshooting e resolução de problemas
 
 ## 🗄️ Banco de Dados
 
