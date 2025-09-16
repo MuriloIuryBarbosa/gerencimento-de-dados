@@ -1,8 +1,3 @@
-codigo,nome,ordem,ativo
-PP,Pequeno Pequeno,1,true
-P,Pequeno,2,true
-M,Médio,3,true
-G,Grande,4,true
-GG,Grande Grande,5,true
-XG,Extra Grande,6,true
-XXG,Extra Extra Grande,7,false
+version https://git-lfs.github.com/spec/v1
+oid sha256:4223d1fc2988591163eba343b6ea12e82e45f05c17050bae40656c73ca093e74
+size 185

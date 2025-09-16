@@ -1,4 +1,3 @@
-id,nome,descricao,categoria,unidade,precoVenda,estoqueMinimo,ativo,unegNome,familiaNome,corNome,tamanhoNome
-TEST001,Produto com Açúcar,Descrição com café e pão,Teste,UN,29.90,10,true,Unidade Nordeste,Família Açúcar,Cor Café,Tamanho Médio
-TEST002,Coração de Melão,Produto com coração e melão,Teste,UN,15.50,5,true,Unidade Sudeste,Família Frutas,Cor Verde,Tamanho Grande
-TEST003,Canção de Ninar,Descrição com cânticos,Teste,UN,45.00,2,true,Unidade Centro,Família Música,Cor Azul,Tamanho Pequeno
+version https://git-lfs.github.com/spec/v1
+oid sha256:07841d34fbe4df593097c92f6bfb1f7929aba5b47613fbf5cd4f1ce8b229c8f1
+size 522

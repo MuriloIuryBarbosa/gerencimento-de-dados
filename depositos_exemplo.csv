@@ -1,5 +1,3 @@
-codigo,nome,localizacao,ativo
-DEP001,Depósito Central,São Paulo - SP,true
-DEP002,Depósito Norte,Rio de Janeiro - RJ,true
-DEP003,Depósito Sul,Porto Alegre - RS,false
-DEP004,Depósito Leste,Belo Horizonte - MG,true
+version https://git-lfs.github.com/spec/v1
+oid sha256:7c51210c497789a8d2085247edf73e149cbc41d2ce2df55e6b09c87444f3b103
+size 222

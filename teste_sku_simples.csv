@@ -1,2 +1,3 @@
-CHAVE SKU,Nome do Produto,Codigo Familia,Familia,Codigo Uneg,Uneg,Unidade,Ativo
-TEST001,Produto de Teste,9999,Família Teste,99,UNEG Teste,UN,true
+version https://git-lfs.github.com/spec/v1
+oid sha256:d16325a0eefa10514826957dfd2338f0249066ff5fe191e6e06dc376276bf38e
+size 149

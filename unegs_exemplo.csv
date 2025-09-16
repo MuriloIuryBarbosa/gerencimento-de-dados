@@ -1,5 +1,3 @@
-codigo,nome,ativo
-001,Unidade de Negócios 1,true
-002,Unidade de Negócios 2,true
-003,Unidade de Negócios 3,false
-004,Unidade de Negócios 4,true
+version https://git-lfs.github.com/spec/v1
+oid sha256:ff80941ce08a9985cb7c6d80e076cd6b38c92931772eba2d14af4ee8eb0d472d
+size 152

@@ -1,4 +1,3 @@
-Código SKU,Nome do Produto,Descrição,Categoria,Unidade,Preço de Venda,Custo Médio,Estoque Mínimo,Estoque Máximo,Ativo
-SKU001,Produto Exemplo 1,Descrição do produto exemplo,Categoria A,UN,29.90,15.50,10,100,true
-SKU002,Produto Exemplo 2,Outro produto exemplo,Categoria B,KG,45.00,22.00,5,50,true
-SKU003,Produto Exemplo 3,Mais um produto exemplo,Categoria A,UN,15.50,8.00,20,200,true
+version https://git-lfs.github.com/spec/v1
+oid sha256:699182cdcfd8c42884e43398338ff651ee81397ec152c21bf0e9e41837e20dba
+size 395
